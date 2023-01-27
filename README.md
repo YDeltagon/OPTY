@@ -11,15 +11,14 @@
   - [REPOSITORY](#repository)
     - [**Release - 2023-01-27**](#release---2023-01-27)
   - [OPTY](#opty)
-    - [**v01.0.0 - Release - 2023-01-27**](#v0100---release---2023-01-27)
+    - [**v01.0.1 - Auto Update - 2023-01-27**](#v0101---auto-update---2023-01-27)
 
 ---
 
 **RESTART THE COMPUTER BEFORE RUNNING THE SCRIPT** - This allows any pending updates to complete.
 
-- Download and Extract `OPTY.bat` and `\resources` folder on your computer.
-- Copy them to **Desktop** on the target machine
-- Right click on `OPTY.bat` and select "**Run as administrator**"
+- Download `OPTY.bat`
+- Right click on and select "**Run as administrator**"
 - Use the menu to run the desired script
 - **Reboot** the system before doing *anything else*.
 
@@ -81,7 +80,13 @@ This is a simple menu for use commands to fix some bugs and optimize your comput
 
 ### OPTY
 
-#### **v01.0.0 - Release - 2023-01-27**
+#### **v01.0.1 - Auto Update - 2023-01-27**
+
+    - Add auto update Opty.bat
+    - Add auto download fixusershellfolderpermissions.ps1 from GitHub if need
+    - Update some bug
+
+#### **v01.0.0 - Release - 2023-01-27**<!-- omit in toc -->
 
     - First Release
     - Update some bug

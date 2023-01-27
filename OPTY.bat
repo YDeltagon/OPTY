@@ -1,5 +1,70 @@
+rem Set the current version of the script
+set current_version=01.0.1
+rem Set the current folder
+cd /d "%~dp0"
+rem Set color
+color 0C
+rem set echo off
 @echo off
+
+:ping_github
+cls
+@echo off
+
+echo Check GitHub ping...
+set "url=github.com"
+
+:loop
+ping %url% | find "TTL="
+if %errorlevel%==0 (
+    echo Update check successful.
+    goto update_opty
+) else (
+    echo Update check failed, retrying...
+    timeout /t 5
+    goto loop
+)
+
+:update_opty
+echo Check Update for this script...
+
+rem Get the latest version from GitHub
+for /f "tokens=2 delims=V" %%a in ('curl -s https://api.github.com/repos/YDeltagon/OPTY/releases/latest -L -H "Accept: application/json"^|findstr "tag_name"') do set latest_version=%%a
+set latest_version=%latest_version:~0,-2%
+
+rem Compare the versions and prompt the user to update if a new version is available
+if "%current_version%"=="%latest_version%" goto update_not_available
+goto update_available
+
+:update_available
+color 0C
+cls
+echo.
+echo  A new version of OPTY.bat is available on GitHub.
+echo  YDeltagon\OPTY\releases\latest\download\OPTY.bat
+echo.
+echo.
+echo   Current version: v%current_version%
+echo   Latest version: v%latest_version%
+echo.
+echo.
+set /p choice=Do you want to update ? Y (Yes) - N (No)
+
+if /i "%choice%"=="Y" cls & color 0A & echo. & curl -o new_OPTY.bat -LJO https://github.com/YDeltagon/OPTY/releases/latest/download/OPTY.bat & echo The script has been updated to %latest_version%. & echo Please restart the script to use the new version. & timeout /t 15 & move /y new_OPTY.bat OPTY.bat & exit
+if /i "%choice%"=="N" cls & color 09 & echo. & echo The script will continue to run with version %current_version%. & timeout /t 15 & goto menu
+
+:update_not_available
+color 0A
+cls
+echo.
+echo You are running the latest version of this script: %current_version%.
+echo.
+timeout /t 15
+goto menu
+
+
 :menu
+color F1
 cls
 echo.
 echo  WELCOME to OPTY by @YDeltagon (YannD)
@@ -33,12 +98,16 @@ if "%choice%"=="3" goto mregprofil
 if "%choice%"=="a" goto FixUserShellFolderPermissions
 if "%choice%"=="0" goto end
 if "%choice%"=="ns" goto nshutdown
+if "%choice%"=="oup" goto update_opty
+if /i "%choice%"=="M" goto menu
+color 0C
 echo This is not a valid action
 timeout /t 5
 goto menu
 
 
 :mopti
+color F5
 cls
 echo.
 echo  WELCOME to OPTY by @YDeltagon (YannD)
@@ -72,12 +141,14 @@ if /i "%choice%"=="3" set auto=2 & set autoreboot=0 & goto delete
 if /i "%choice%"=="2r" set auto=1 & set autoreboot=1 & goto delete
 if /i "%choice%"=="3r" set auto=2 & set autoreboot=1 & goto delete
 if /i "%choice%"=="M" goto menu
+color 0C
 echo This is not a valid action
 timeout /t 5
 goto mopti
 
 
 :mreenable
+color F2
 cls
 echo.
 echo  WELCOME to OPTY by @YDeltagon (YannD)
@@ -109,12 +180,14 @@ if "%choice%"=="1" goto office_update
 if "%choice%"=="2" goto enable_google_update
 if "%choice%"=="3" goto enable_windows_update
 if "%choice%"=="m" goto menu
+color 0C
 echo This is not a valid action
 timeout /t 5
 goto mreenable
 
 
 :mregprofil
+color FC
 cls
 echo.
 echo  WELCOME to OPTY by @YDeltagon (YannD)
@@ -147,6 +220,7 @@ if "%choice%"=="2" goto regprofil-gaming
 if "%choice%"=="3" goto regprofil-gamingapp
 if "%choice%"=="4" goto regprofil-server
 if "%choice%"=="m" goto menu
+color 0C
 echo This is not a valid action
 timeout /t 5
 goto mregprofil
@@ -221,6 +295,7 @@ goto menu
 
 
 :disenable
+color F4
 cls
 echo.
 echo  WELCOME to OPTY by @YDeltagon (YannD)
@@ -259,6 +334,7 @@ if /i "%choice%"=="+hbn" powercfg.exe /hibernate on & echo Enable hibernate & pa
 if /i "%choice%"=="n" goto mclean
 if /i "%choice%"=="M" goto menu
 cls
+color 0C
 echo This is not a valid action
 timeout /t 5
 goto disenable
@@ -401,7 +477,7 @@ goto mdefrag
 :defrag
 defrag /C /O /U /V /H
 timeout /t 5
-if /i %auto% == 2 goto chkdsk
+if /i %auto% == 2 goto defrag
 
 
 :mchkdsk
@@ -492,24 +568,19 @@ goto mreenable
 
 :FixUserShellFolderPermissions
 cls
-copy /y "%~dp0resources\FixUserShellFolderPermissions.ps1" "C:\Temp\FixUserShellFolderPermissions.ps1"
-explorer "C:\Temp"
+md "C:\Temp"
 echo.
-echo  Open a Powershell no admin on the new explorer (C:\Temp)
-echo  And paste your Clipboard in your powershell
-echo pwsh.exe -ExecutionPolicy Bypass | clip
+cd "C:\Temp"
+curl -LJO https://github.com/YDeltagon/OPTY/blob/master/resources/FixUserShellFolderPermissions.ps1
 echo.
-echo  Press enter after pasting, and paste again
-echo.
+echo  Set username with domain 
+set /p username= domain\username :
+runas /user:%username% "powershell.exe -ExecutionPolicy Bypass -File C:\Temp\FixUserShellFolderPermissions.ps1"
 pause
 echo.
-echo  Paste your Clipboard in your powershell again
-echo .\FixUserShellFolderPermissions.ps1 | clip
-echo.
-echo  And press enter at the end
-echo.
-pause
 del /f /q "C:\Temp\FixUserShellFolderPermissions.ps1"
+cd /d "%~dp0"
+timeout /t 5
 goto menu
 
 
@@ -521,6 +592,7 @@ goto menu
 
 
 :end
+color F2
 cls
 echo.
 echo.
