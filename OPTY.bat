@@ -71,7 +71,7 @@ if /i "%choice%"=="2" set auto=1 & set autoreboot=0 & goto delete
 if /i "%choice%"=="3" set auto=2 & set autoreboot=0 & goto delete
 if /i "%choice%"=="2r" set auto=1 & set autoreboot=1 & goto delete
 if /i "%choice%"=="3r" set auto=2 & set autoreboot=1 & goto delete
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mopti
@@ -106,8 +106,8 @@ echo   0. Exit
 echo.
 set /p choice= Enter action:
 if "%choice%"=="1" goto office_update
-if "%choice%"=="2" goto google_update
-if "%choice%"=="3" goto windows_update
+if "%choice%"=="2" goto enable_google_update
+if "%choice%"=="3" goto enable_windows_update
 if "%choice%"=="m" goto menu
 echo This is not a valid action
 timeout /t 5
@@ -257,7 +257,7 @@ if /i "%choice%"=="+fad" fsutil behavior set disablelastaccess 0 & pause & goto 
 if /i "%choice%"=="-hbn" powercfg.exe /hibernate off & echo Disable hibernate & pause & goto disenable
 if /i "%choice%"=="+hbn" powercfg.exe /hibernate on & echo Enable hibernate & pause & goto disenable
 if /i "%choice%"=="n" goto mclean
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 cls
 echo This is not a valid action
 timeout /t 5
@@ -285,17 +285,16 @@ if /i %auto% == 2 goto delete
 
 :mdelete
 cls
-echo Do you want to delete temporary files?
+echo Do you want to delete temporary files - /del ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto delete
 if /i "%choice%"=="N" goto mdism
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mdelete
 
 :delete
-echo.
 REM ========= Temp =========
 setlocal
 for /D %%i in ("C:\Users\*") do (
@@ -316,57 +315,52 @@ if /i %auto% == 2 goto dism
 
 :mdism
 cls
-echo Do you want to dismy the integrity of the Windows image and correct problems?
+echo Do you want to dismy the integrity of the Windows image and correct problems - /Dism ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto dism
 if /i "%choice%"=="N" goto msfc
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mdism
 
 :dism
-echo.
 Dism /Online /Cleanup-Image /ScanHealth
 Dism /Online /Cleanup-Image /CheckHealth
 Dism /Online /Cleanup-Image /RestoreHealth
 timeout /t 5
-if /i %auto% == 1 goto wupdate
-if /i %auto% == 2 goto msfc
+if /i %auto% == 2 goto sfc
 
 
 :msfc
 cls
-echo Do you want to verify the integrity of system files and fix problems?
+echo Do you want to verify the integrity of system files and fix problems - /sfc ?
 set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto msfc
+if /i "%choice%"=="Y" goto sfc
 if /i "%choice%"=="N" goto mwupdate
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
 goto msfc
 
 :sfc
-echo.
 sfc /scannow
 timeout /t 5
-if /i %auto% == 1 goto wupdate
 if /i %auto% == 2 goto wupdate
 
 
 :mwupdate
 cls
-echo Do you want to update Windows ?
+echo Do you want to update Windows - /usoclient ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto wupdate
 if /i "%choice%"=="N" goto mwupdate2
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mwupdate
 
 :wupdate
-echo Windows update...
 usoclient StartScan
 usoclient RefreshSettings
 usoclient StartInstall
@@ -377,11 +371,11 @@ if /i %auto% == 2 goto wupdate2
 
 :mwupdate2
 cls
-echo Do you want to update software?
+echo Do you want to update software - /winget ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto wupdate2
 if /i "%choice%"=="N" goto mdefrag
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mwupdate2
@@ -395,39 +389,35 @@ if /i %auto% == 2 goto defrag
 
 :mdefrag
 cls
-echo Do you want to defragment the hard drive?
+echo Do you want to defragment HDD or optimize SSD - /defrag ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto defrag
 if /i "%choice%"=="N" goto mchkdsk
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mdefrag
 
 :defrag
-echo.
 defrag /C /O /U /V /H
 timeout /t 5
-if /i %auto% == 1 goto reboot
 if /i %auto% == 2 goto chkdsk
 
 
 :mchkdsk
 cls
-echo Do you want to check the integrity of hard drives and fix any problems?
+echo Do you want to check the integrity of hard drives and fix any problems - /CHKDSK ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto chkdsk
 if /i "%choice%"=="N" goto mreboot
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mchkdsk
 
 :chkdsk
-echo.
 CHKDSK /f /r
 timeout /t 5
-if /i %auto% == 1 goto reboot
 if /i %auto% == 2 goto reboot
 
 
@@ -437,13 +427,12 @@ echo Do you want to restart the computer?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto reboot
 if /i "%choice%"=="N" goto menu
-if /i "%choice%"=="m" goto menu
+if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mreboot
 
 :reboot
-echo.
 if /i %autoreboot% == 0 goto skipreboot
 shutdown /s /f /t 20
 timeout /t 10
@@ -451,23 +440,9 @@ goto end
 
 
 :skipreboot
-echo.
 echo The computer will not restart.
 pause
 goto end
-
-
-:windows_update
-cls
-Net stop wuauserv
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "DisableWindowsUpdateAccess" /t REG_DWORD /d 0 /f
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "SetDisableUXWUAccess" /t REG_DWORD /d 0 /f
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v "UseWUServer" /t REG_DWORD /d 0 /f
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "ExcludeWUDriversInQualityUpdate" /t REG_DWORD /d 0 /f
-echo.
-Net start wuauserv
-pause
-goto mreenable
 
 
 :dcu
@@ -488,7 +463,7 @@ pause
 goto mreenable
 
 
-:google_update
+:enable_google_update
 cls
 taskkill /f /im chrome.exe
 cls
@@ -502,9 +477,22 @@ pause
 goto mreenable
 
 
+:enable_windows_update
+cls
+Net stop wuauserv
+REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "DisableWindowsUpdateAccess" /t REG_DWORD /d 0 /f
+REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "SetDisableUXWUAccess" /t REG_DWORD /d 0 /f
+REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v "UseWUServer" /t REG_DWORD /d 0 /f
+REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "ExcludeWUDriversInQualityUpdate" /t REG_DWORD /d 0 /f
+echo.
+Net start wuauserv
+pause
+goto mreenable
+
+
 :FixUserShellFolderPermissions
 cls
-copy /y "%~dp0resources\stage_4_repair\FixUserShellFolderPermissions.ps1" "C:\Temp\FixUserShellFolderPermissions.ps1"
+copy /y "%~dp0resources\FixUserShellFolderPermissions.ps1" "C:\Temp\FixUserShellFolderPermissions.ps1"
 explorer "C:\Temp"
 echo.
 echo  Open a Powershell no admin on the new explorer (C:\Temp)

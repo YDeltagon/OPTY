@@ -1,19 +1,17 @@
-# WIP PROJECT - NOT FOR USE - WAIT 1.0 RELEASE <!-- omit in toc -->
-
 | OPTY | Optimisation and Cleaning script |
 | - | - |
 | AUTHOR | YDeltagon : [Twitch](https://twitch.tv/YDeltagon) - [Twitter](https://twitter.com/YDeltagon)
-| VERSION | 00.1.2
-| DATE | 2023-01-12
+| VERSION | 01.0.0
+| DATE | 2023-01-27
 
 # About <!-- omit in toc -->
 
 - [Description](#description)
 - [CHANGE-LOGS](#change-logs)
   - [REPOSITORY](#repository)
-    - [**No fork - 2023-01-16**](#no-fork---2023-01-16)
+    - [**Release - 2023-01-27**](#release---2023-01-27)
   - [OPTY](#opty)
-    - [**v00.1.2 - Big update - 2023-01-12**](#v0012---big-update---2023-01-12)
+    - [**v01.0.0 - Release - 2023-01-27**](#v0100---release---2023-01-27)
 
 ---
 
@@ -21,27 +19,17 @@
 
 - Download and Extract `OPTY.bat` and `\resources` folder on your computer.
 - Copy them to **Desktop** on the target machine
-  - It can be run with Windows in safe mode or normal mode.
-    - Normal mode is generally recommended unless the system is severely infected.
 - Right click on `OPTY.bat` and select "**Run as administrator**"
 - Use the menu to run the desired script
 - **Reboot** the system before doing *anything else*.
-
-The log is located in `C:\logs\ScriptByYannD\Opty.log`.
-
-The script automatically sends me the execution logs upon completion.
 
 ## Description
 
 It's a Custom script made with my little hand
 
-This script is your start, this is a simple menu for use commands
+This is a simple menu for use commands to fix some bugs and optimize your computer
 
 **Based on 3 year of experience in IT, and 2 years of laziness typing the same commands**
-
-Like FUSFP, It's a microsoft script for fix a User Shell Folder Permissions
-
-For **Start/Notif/Wifi/Office** fix - by Microsoft IT support
 
 ## CHANGE-LOGS
 
@@ -50,7 +38,13 @@ For **Start/Notif/Wifi/Office** fix - by Microsoft IT support
 
 ### REPOSITORY
 
-#### **No fork - 2023-01-16**
+#### **Release - 2023-01-27**
+
+    - First Release
+    - Update some bug
+    - Update fixusershellfolderpermissions.ps1
+
+#### **No fork - 2023-01-16**<!-- omit in toc -->
 
     - Unfork my project
     - TRON is now just a note for me
@@ -87,7 +81,12 @@ For **Start/Notif/Wifi/Office** fix - by Microsoft IT support
 
 ### OPTY
 
-#### **v00.1.2 - Big update - 2023-01-12**
+#### **v01.0.0 - Release - 2023-01-27**
+
+    - First Release
+    - Update some bug
+
+#### **v00.1.2 - Big update - 2023-01-12**<!-- omit in toc -->
 
     - Add powercfg.exe /hibernate options on the disenable menu
     - Add a option to NOT reboot after the autoopti
