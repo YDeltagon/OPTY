@@ -32,7 +32,7 @@ set current_time="%current_time::=-%"
 set logs="%~dp0\logs_%date%_%current_time%.txt"
 
 
-set current_version="01.0.2"
+set current_version=01.0.2
 
 
 set loop_pinggh=0
