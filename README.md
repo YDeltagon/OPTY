@@ -1,43 +1,71 @@
 | OPTY | Optimisation and Cleaning script |
 | - | - |
 | AUTHOR | YDeltagon : [Twitch](https://twitch.tv/YDeltagon) - [Twitter](https://twitter.com/YDeltagon)
-| VERSION | 01.0.0
-| DATE | 2023-01-27
+| VERSION | 01.0.2
+| DATE | 2023-01-28
 
-# About <!-- omit in toc -->
-
-- [Description](#description)
-- [CHANGE-LOGS](#change-logs)
-  - [REPOSITORY](#repository)
-    - [**Release - 2023-01-27**](#release---2023-01-27)
-  - [OPTY](#opty)
-    - [**v01.0.1 - Auto Update - 2023-01-27**](#v0101---auto-update---2023-01-27)
-
----
-
-**RESTART THE COMPUTER BEFORE RUNNING THE SCRIPT** - This allows any pending updates to complete.
-
-- Download `OPTY.bat`
-- Right click on and select "**Run as administrator**"
-- Use the menu to run the desired script
-- **Reboot** the system before doing *anything else*.
-
-## Description
-
-It's a Custom script made with my little hand
+## ABOUT <!-- omit in toc -->
 
 This is a simple menu for use commands to fix some bugs and optimize your computer
 
 **Based on 3 year of experience in IT, and 2 years of laziness typing the same commands**
 
-## CHANGE-LOGS
+This is a script for optimize your computer
+With a lot of options :
 
-- [REPO](#repo)
+- cleaning,
+- defragmenting,
+- optimizing,
+- fix,
+- and more...
+
+---
+
+This script is made for **Windows 10/11**
+
+ONLY work WITH a **valid** internet connection
+
+---
+
+**RESTART THE COMPUTER BEFORE RUNNING THE SCRIPT** - This allows any pending updates to complete.
+
+- Download `OPTY.bat` (no need to download the other files)
+- Right click on and select "**Run as administrator**"
+  - If you need to execute FixUserShellFolderPermissions in a entreprise environnement
+    - Execute with the user account
+- Use the menu to run the desired script
+- **Reboot** the system before doing *anything else*.
+
+---
+
+## CHANGE-LOGS<!-- omit in toc -->
+
+- [REPOSITORY](#repository)
+  - [**Update script - 2023-01-28**](#update-script---2023-01-28)
 - [OPTY](#opty)
+  - [**v01.0.2 - Auto Update +++ - 2023-01-28**](#v0102---auto-update----2023-01-28)
+- [Opti.bat](#optibat)
+  - [**v01.0.0 - Standalone - 2023-01-28**](#v0100---standalone---2023-01-28)
+- [ReEnable.bat](#reenablebat)
+  - [**v01.0.0 - Standalone - 2023-01-28**](#v0100---standalone---2023-01-28-1)
+- [RegProfil.bat](#regprofilbat)
+  - [**v01.0.0 - Standalone - 2023-01-28**](#v0100---standalone---2023-01-28-2)
+
+---
 
 ### REPOSITORY
 
-#### **Release - 2023-01-27**
+#### **Update script - 2023-01-28**
+
+    - Now, OPTY check on GitHub for update
+    - All script (opti/enable/reg...) need to be downloaded from GitHub
+      - ReEnable.bat is now standalone
+      - RegProfil.bat is now standalone
+      - Opti.bat is now standalone
+        - This is more easy to update
+    - OPTY now pass in a new version
+
+#### **Release - 2023-01-27**<!-- omit in toc -->
 
     - First Release
     - Update some bug
@@ -78,9 +106,25 @@ This is a simple menu for use commands to fix some bugs and optimize your comput
     - Fork of TRON
     - Add my custom OPTY.bat
 
+---
+
 ### OPTY
 
-#### **v01.0.1 - Auto Update - 2023-01-27**
+#### **v01.0.2 - Auto Update +++ - 2023-01-28**
+
+    - Get out some old menu
+      - ReEnable.bat is now standalone
+      - RegProfil.bat is now standalone
+      - Opti.bat is now standalone
+        - This is more easy to update
+    - Add a check for admin right or not
+      - if admin : menu is full
+      - if user : menu is lite with only user-side options
+    - Update some bug
+    - Add color for menu and bug
+    - Add ping test to GitHub for update
+
+#### **v01.0.1 - Auto Update - 2023-01-27**<!-- omit in toc -->
 
     - Add auto update Opty.bat
     - Add auto download fixusershellfolderpermissions.ps1 from GitHub if need
@@ -130,3 +174,27 @@ This is a simple menu for use commands to fix some bugs and optimize your comput
 #### **v00.0.1 - First push (not work) - 2023-01-11**<!-- omit in toc -->
 
     - Not executables for the times
+
+---
+
+### Opti.bat
+
+#### **v01.0.0 - Standalone - 2023-01-28**
+
+    - Like old, but standalone
+
+---
+
+### ReEnable.bat
+
+#### **v01.0.0 - Standalone - 2023-01-28**
+
+    - Like old, but standalone
+
+---
+
+### RegProfil.bat
+
+#### **v01.0.0 - Standalone - 2023-01-28**
+
+    - Like old, but standalone
