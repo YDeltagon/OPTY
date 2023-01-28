@@ -20,7 +20,6 @@ if %errorlevel% == 0 (
 if not "%~dp0" == "C:\OPTY_by-YannD\" (
     md "C:\OPTY_by-YannD"
     xcopy /y "%~dp0OPTY.bat" "C:\OPTY_by-YannD"
-    curl -o "%PUBLIC%\Desktop\OPTY by YannD.bat.lnk" -LJO https://github.com/YDeltagon/OPTY/blob/master/resources/OPTY.bat.lnk
     start "" "C:\OPTY_by-YannD\OPTY.bat"
     del "%~dp0OPTY.bat"
     exit
@@ -216,20 +215,20 @@ goto menu
 
 
 :optytomopti
-curl -o "%~dp0" -LJO https://github.com/YDeltagon/OPTY/blob/master/resources/Opti.bat
-call "%~dp0\Opti.bat"
+curl -o "Opti.bat" -LJO https://github.com/YDeltagon/OPTY/releases/latest/download/Opti.bat
+call "Opti.bat"
 goto menu
 
 
 :optytomreenable
-curl -o "%~dp0" -LJO https://github.com/YDeltagon/OPTY/blob/master/resources/ReEnable.bat
-call "%~dp0\ReEnable.bat"
+curl -o "ReEnable.bat" -LJO https://github.com/YDeltagon/OPTY/releases/latest/download/ReEnable.bat
+call "ReEnable.bat"
 goto menu
 
 
 :optytomregprofil
-curl -o "%~dp0" -LJO https://github.com/YDeltagon/OPTY/blob/master/resources/RegProfil.bat
-call "%~dp0\RegProfil.bat"
+curl -o "RegProfil.bat" -LJO https://github.com/YDeltagon/OPTY/releases/latest/download/RegProfil.bat
+call "RegProfil.bat"
 goto menu
 
 
@@ -238,7 +237,7 @@ cls
 md "C:\Temp"
 echo.
 cd "C:\Temp"
-curl -LJO https://github.com/YDeltagon/OPTY/blob/master/resources/FixUserShellFolderPermissions.ps1
+curl -LJO https://github.com/YDeltagon/OPTY/releases/latest/download/FixUserShellFolderPermissions.ps1
 echo.
 echo  Set username with domain 
 set /p username= domain\username :
