@@ -1,9 +1,3 @@
-| OPTY | Optimisation and Cleaning script |
-| - | - |
-| AUTHOR | YDeltagon : [Twitch](https://twitch.tv/YDeltagon) - [Twitter](https://twitter.com/YDeltagon)
-| VERSION | 01.0.2
-| DATE | 2023-01-28
-
 ## ABOUT <!-- omit in toc -->
 
 This is a simple menu for use commands to fix some bugs and optimize your computer
@@ -18,8 +12,6 @@ With a lot of options :
 - optimizing,
 - fix,
 - and more...
-
----
 
 This script is made for **Windows 10/11**
 
@@ -36,24 +28,20 @@ ONLY work WITH a **valid** internet connection
 - Use the menu to run the desired script
 - **Reboot** the system before doing *anything else*.
 
----
-
 ## CHANGE-LOGS<!-- omit in toc -->
 
 - [REPOSITORY](#repository)
+  - [**TO-DO**](#to-do)
   - [**Update script - 2023-01-28**](#update-script---2023-01-28)
 - [OPTY](#opty)
-  - [**v01.0.2 - Auto Update +++ - 2023-01-28**](#v0102---auto-update----2023-01-28)
-- [Opti.bat](#optibat)
-  - [**v01.0.0 - Standalone - 2023-01-28**](#v0100---standalone---2023-01-28)
-- [ReEnable.bat](#reenablebat)
-  - [**v01.0.0 - Standalone - 2023-01-28**](#v0100---standalone---2023-01-28-1)
-- [RegProfil.bat](#regprofilbat)
-  - [**v01.0.0 - Standalone - 2023-01-28**](#v0100---standalone---2023-01-28-2)
-
----
+  - [**TO-DO**](#to-do-1)
+  - [**v01.0.3 - Shortcut - 2023-01-28**](#v0103---shortcut---2023-01-28)
 
 ### REPOSITORY
+
+#### **TO-DO**
+
+    - 
 
 #### **Update script - 2023-01-28**
 
@@ -64,6 +52,7 @@ ONLY work WITH a **valid** internet connection
       - Opti.bat is now standalone
         - This is more easy to update
     - OPTY now pass in a new version
+    - Add all files Standalone in the repo
 
 #### **Release - 2023-01-27**<!-- omit in toc -->
 
@@ -106,11 +95,20 @@ ONLY work WITH a **valid** internet connection
     - Fork of TRON
     - Add my custom OPTY.bat
 
----
-
 ### OPTY
 
-#### **v01.0.2 - Auto Update +++ - 2023-01-28**
+#### **TO-DO**
+
+    - Add logs for all steps
+
+#### **v01.0.3 - Shortcut - 2023-01-28**
+
+    - Add a fonction to create a shortcut on public desktop
+    - Add REM to all steps
+    - Update FixUserShellFolderPermissions.ps1 menu for user
+    - Changelog of all standalone files is now in the files
+
+#### **v01.0.2 - Auto Update +++ - 2023-01-28**<!-- omit in toc -->
 
     - Get out some old menu
       - ReEnable.bat is now standalone
@@ -177,24 +175,5 @@ ONLY work WITH a **valid** internet connection
 
 ---
 
-### Opti.bat
-
-#### **v01.0.0 - Standalone - 2023-01-28**
-
-    - Like old, but standalone
-
----
-
-### ReEnable.bat
-
-#### **v01.0.0 - Standalone - 2023-01-28**
-
-    - Like old, but standalone
-
----
-
-### RegProfil.bat
-
-#### **v01.0.0 - Standalone - 2023-01-28**
-
-    - Like old, but standalone
+| AUTHOR | YDeltagon : [Twitch](https://twitch.tv/YDeltagon) - [Twitter](https://twitter.com/YDeltagon)
+| - | - |
