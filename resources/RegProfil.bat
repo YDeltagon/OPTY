@@ -1,3 +1,5 @@
+:: 2023-01-27 - standalone :          Like old, but standalone
+
 color FC
 cls
 echo.

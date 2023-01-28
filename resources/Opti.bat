@@ -1,3 +1,7 @@
+:: 2023-01-28 - timeout auto :        If is auto on, no need to wait with timeout
+:: 2023-01-27 - standalone :          Like old, but standalone
+
+
 :mopti
 color F5
 cls
@@ -99,9 +103,9 @@ goto mclean
 :clean
 echo Cleanmgr...
 cleanmgr /sagerun:65535
-timeout /t 5
 if /i %auto% == 1 goto delete
 if /i %auto% == 2 goto delete
+timeout /t 5
 
 
 :mdelete
@@ -128,10 +132,9 @@ rd /S /Q "%SystemRoot%\Temp"
 REM ========= CCMCache =========
 del /F /S /Q "%SystemRoot%\ccmcache\*.*"
 rd /S /Q "%SystemRoot%\ccmcache\"
-timeout /t 5
-REM Creating log file
 if /i %auto% == 1 goto wupdate
 if /i %auto% == 2 goto dism
+timeout /t 5
 
 
 :mdism
@@ -149,8 +152,8 @@ goto mdism
 Dism /Online /Cleanup-Image /ScanHealth
 Dism /Online /Cleanup-Image /CheckHealth
 Dism /Online /Cleanup-Image /RestoreHealth
-timeout /t 5
 if /i %auto% == 2 goto sfc
+timeout /t 5
 
 
 :msfc
@@ -166,8 +169,8 @@ goto msfc
 
 :sfc
 sfc /scannow
-timeout /t 5
 if /i %auto% == 2 goto wupdate
+timeout /t 5
 
 
 :mwupdate
@@ -185,9 +188,9 @@ goto mwupdate
 usoclient StartScan
 usoclient RefreshSettings
 usoclient StartInstall
-timeout /t 5
 if /i %auto% == 1 goto wupdate2
 if /i %auto% == 2 goto wupdate2
+timeout /t 5
 
 
 :mwupdate2
@@ -203,9 +206,9 @@ goto mwupdate2
 
 :wupdate2
 winget upgrade --all --include-unknown
-timeout /t 5
 if /i %auto% == 1 goto reboot
 if /i %auto% == 2 goto defrag
+timeout /t 5
 
 
 :mdefrag
@@ -221,8 +224,8 @@ goto mdefrag
 
 :defrag
 defrag /C /O /U /V /H
-timeout /t 5
 if /i %auto% == 2 goto defrag
+timeout /t 5
 
 
 :mchkdsk
@@ -238,8 +241,8 @@ goto mchkdsk
 
 :chkdsk
 CHKDSK /f /r
-timeout /t 5
 if /i %auto% == 2 goto reboot
+timeout /t 5
 
 
 :mreboot
