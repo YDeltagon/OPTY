@@ -1,7 +1,17 @@
 :: Change-logs :                      Found on Readme.md GitHub
+rem todo : check ping if not admin
+
 
 @echo off
-set current_version=01.0.3
+REM set variables
+set current_version=01.0.4
+set GitHubRawLink=https://raw.githubusercontent.com/YDeltagon/OPTY/master/resources/
+set GitHubLatestLink=https://github.com/YDeltagon/OPTY/releases/latest/download/
+REM Set variables for logs
+cd /d "%~dp0"
+set current_time="%time:~0,5%"
+set current_time="%current_time::=-%"
+set logs="%~dp0\logs_%date%_%current_time%.txt"
 
 REM Check if running as administrator
 net session >nul 2>&1
@@ -11,22 +21,24 @@ if %errorlevel% == 0 (
     echo Running as administrator
     echo.
     timeout /t 1
+    goto shortcut
 ) else (
     set admin=0
     echo.
     echo Not running as administrator
     echo.
     timeout /t 1
-    curl -o "Menu.bat" -LJO https://github.com/YDeltagon/OPTY/releases/download/V%current_version%/Menu.bat
-    call "Menu.bat"
+    goto ping_github
 )
 
 
+
 REM Check if running from C:\OPTY_by-YannD\OPTY.bat if not copy it to C:\OPTY_by-YannD\OPTY.bat and create a shortcut on desktop
+:shortcut
 if not "%~dp0" == "C:\OPTY_by-YannD\" (
     md "C:\OPTY_by-YannD"
     xcopy /y "%~dp0OPTY.bat" "C:\OPTY_by-YannD"
-    curl -o "%~dp0Shortcut.ps1" -LJO https://github.com/YDeltagon/OPTY/releases/download/V%current_version%/Shortcut.ps1
+    curl -o "%~dp0Shortcut.ps1" -LJO %GitHubRawLink%Shortcut.ps1
     powershell.exe -ExecutionPolicy Bypass -File "%~dp0Shortcut.ps1"
     del /f /q "%~dp0Shortcut.ps1"
     start "" "C:\OPTY_by-YannD\OPTY.bat"
@@ -35,14 +47,9 @@ if not "%~dp0" == "C:\OPTY_by-YannD\" (
 )
 
 
-REM Set variables for logs
-cd /d "%~dp0"
-set current_time="%time:~0,5%"
-set current_time="%current_time::=-%"
-set logs="%~dp0\logs_%date%_%current_time%.txt"
-
 
 REM Check if internet connection is available and ping github.com
+:ping_github
 set loop_pinggh=0
 color 60
 :ping_github_loop
@@ -50,7 +57,7 @@ cls
 echo.
 echo  Check GitHub ping...
 echo.
-ping -n 1 -l 8 "github.com" | find "TTL="
+ping -n 1 -l 8 github.com | find "TTL="
 if %errorlevel%==0 (
     color 20
     echo.
@@ -114,7 +121,7 @@ REM If user accept update, download new OPTY.bat and replace the old one
 cls
 color 02
 echo.
-curl -o "%~dp0\new_OPTY.bat" -LJO https://github.com/YDeltagon/OPTY/releases/latest/download/OPTY.bat
+curl -o "%~dp0\new_OPTY.bat" -LJO %GitHubLatestLink%OPTY.bat
 echo.
 echo The script has been updated to %latest_version%.
 echo.
@@ -131,7 +138,7 @@ echo.
 echo The script will continue to run with version %current_version%.
 echo.
 timeout /t 1
-curl -o "Menu.bat" -LJO https://github.com/YDeltagon/OPTY/releases/download/V%current_version%/Menu.bat
+curl -o "Menu.bat" -LJO %GitHubRawLink%Menu.bat
 call "Menu.bat"
 
 
@@ -143,7 +150,7 @@ echo.
 echo You are running the latest version of this script: %current_version%.
 echo.
 timeout /t 1
-curl -o "Menu.bat" -LJO https://github.com/YDeltagon/OPTY/releases/download/V%current_version%/Menu.bat
+curl -o "Menu.bat" -LJO %GitHubRawLink%Menu.bat
 call "Menu.bat"
 
 
@@ -152,8 +159,11 @@ color F2
 cls
 echo.
 echo.
+echo.
 echo  Thanks for using my script
 echo     @YDeltagon (YannD)
+echo.
+echo.
 echo.
 timeout /t 15
 exit

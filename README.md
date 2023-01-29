@@ -35,6 +35,7 @@ ONLY work WITH a **valid** internet connection
   - [**Update script - 2023-01-28**](#update-script---2023-01-28)
 - [OPTY](#opty)
   - [**TO-DO**](#to-do-1)
+  - [**v01.0.4 - Link - 2023-01-29**](#v0104---link---2023-01-29)
   - [**v01.0.3 - Shortcut - 2023-01-28**](#v0103---shortcut---2023-01-28)
 
 ### REPOSITORY
@@ -100,6 +101,15 @@ ONLY work WITH a **valid** internet connection
 #### **TO-DO**
 
     - Add logs for all steps
+
+#### **v01.0.4 - Link - 2023-01-29**
+
+    - Update Link
+      - Donwload files directly on Github repo, and not from latest
+    - Update ping check and update if no-admin
+    - Fix some bug
+      - Auto-Defrag
+      - No Shutdown confirmation
 
 #### **v01.0.3 - Shortcut - 2023-01-28**
 

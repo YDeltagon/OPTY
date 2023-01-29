@@ -1,3 +1,4 @@
+:: 2023-01-29 - Link :                Update link GitHub
 :: 2023-01-28 - standalone :          Like old, but standalone
 
 REM if is a admin account, go to menuadmin, if is a user account, go to menuuser
@@ -91,25 +92,25 @@ goto menu
 
 
 :optytomopti
-curl -o "Opti.bat" -LJO https://github.com/YDeltagon/OPTY/releases/download/V%current_version%/Opti.bat
+curl -o "Opti.bat" -LJO %GitHubRawLink%Opti.bat
 call "Opti.bat"
 goto menu
 
 
 :optytomreenable
-curl -o "ReEnable.bat" -LJO https://github.com/YDeltagon/OPTY/releases/download/V%current_version%/ReEnable.bat
+curl -o "ReEnable.bat" -LJO %GitHubRawLink%ReEnable.bat
 call "ReEnable.bat"
 goto menu
 
 
 :optytomregprofil
-curl -o "RegProfil.bat" -LJO https://github.com/YDeltagon/OPTY/releases/download/V%current_version%/RegProfil.bat
+curl -o "RegProfil.bat" -LJO %GitHubRawLink%RegProfil.bat
 call "RegProfil.bat"
 goto menu
 
 
 :FixUserShellFolderPermissions
-curl -o "FixUserShellFolderPermissions.ps1" -LJO https://github.com/YDeltagon/OPTY/releases/download/V%current_version%/FixUserShellFolderPermissions.ps1
+curl -o "FixUserShellFolderPermissions.ps1" -LJO %GitHubRawLink%FixUserShellFolderPermissions.ps1
 powershell.exe -ExecutionPolicy Bypass -File "%~dp0FixUserShellFolderPermissions.ps1"
 pause
 goto menu
@@ -118,6 +119,9 @@ goto menu
 :nshutdown
 echo.
 shutdown /a
+echo.
+echo The computer will not restart.
+echo.
 timeout /t 10
 goto menu
 

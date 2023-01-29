@@ -1,3 +1,5 @@
+:: 2023-01-29 - auto defrag fix       Fix a bug with auto defrag
+::                                    Update link GitHub
 :: 2023-01-28 - timeout auto :        If is auto on, no need to wait with timeout
 :: 2023-01-27 - standalone :          Like old, but standalone
 
@@ -224,7 +226,7 @@ goto mdefrag
 
 :defrag
 defrag /C /O /U /V /H
-if /i %auto% == 2 goto defrag
+if /i %auto% == 2 goto chkdsk
 timeout /t 5
 
 
