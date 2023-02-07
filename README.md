@@ -35,6 +35,7 @@ ONLY work WITH a **valid** internet connection
   - [**Update script - 2023-01-28**](#update-script---2023-01-28)
 - [OPTY](#opty)
   - [**TO-DO**](#to-do-1)
+  - [**v01.0.5 - Fix - 2023-02-07**](#v0105---fix---2023-02-07)
   - [**v01.0.4 - Link - 2023-01-29**](#v0104---link---2023-01-29)
   - [**v01.0.3 - Shortcut - 2023-01-28**](#v0103---shortcut---2023-01-28)
 
@@ -101,6 +102,12 @@ ONLY work WITH a **valid** internet connection
 #### **TO-DO**
 
     - Add logs for all steps
+
+#### **v01.0.5 - Fix - 2023-02-07**
+
+    - Little fix things
+      - mdisenable do not loop anymore
+    - Add Shutdown or Reboot option after the auto-opti
 
 #### **v01.0.4 - Link - 2023-01-29**
 

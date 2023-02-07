@@ -4,7 +4,7 @@ rem todo : check ping if not admin
 
 @echo off
 REM set variables
-set current_version=01.0.4
+set current_version=01.0.5
 set GitHubRawLink=https://raw.githubusercontent.com/YDeltagon/OPTY/master/resources/
 set GitHubLatestLink=https://github.com/YDeltagon/OPTY/releases/latest/download/
 REM Set variables for logs

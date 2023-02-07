@@ -15,8 +15,8 @@ echo   1. Manual
 echo   2. Auto (lite)
 echo   3. Auto (Full)
 echo.
-echo  If you want reboot after autoopti, type "r" after the number
-echo.                        "2r" "3r"
+echo  If you want reboot/stop after autoopti, type "r" or"s" after the number - 2r/3s/2s/3r
+echo  If you don't want reboot/stop, type nothing after the number - 2/3
 echo.
 echo.
 echo.
@@ -34,10 +34,12 @@ echo   0. Exit
 echo.
 set /p choice= Enter action:
 if /i "%choice%"=="1" set auto=0 & goto mdisenable
-if /i "%choice%"=="2" set auto=1 & set autoreboot=0 & goto delete
-if /i "%choice%"=="3" set auto=2 & set autoreboot=0 & goto delete
-if /i "%choice%"=="2r" set auto=1 & set autoreboot=1 & goto delete
-if /i "%choice%"=="3r" set auto=2 & set autoreboot=1 & goto delete
+if /i "%choice%"=="2" set auto=1 & set autoshutdownreboot=0 & goto delete
+if /i "%choice%"=="3" set auto=2 & set autoshutdownreboot=0 & goto delete
+if /i "%choice%"=="2s" set auto=1 & set autoshutdownreboot=1 & goto delete
+if /i "%choice%"=="3s" set auto=2 & set autoshutdownreboot=1 & goto delete
+if /i "%choice%"=="2r" set auto=1 & set autoshutdownreboot=2 & goto delete
+if /i "%choice%"=="3r" set auto=2 & set autoshutdownreboot=2 & goto delete
 if /i "%choice%"=="M" goto menu
 color 0C
 echo This is not a valid action
@@ -74,21 +76,21 @@ echo   M. Menu
 echo   0. Exit
 echo.
 set /p choice= Enter action:
-if /i "%choice%"=="-1" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "0" /f & pause & goto disenable
-if /i "%choice%"=="+1" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "1" /f & pause & goto disenable
-if /i "%choice%"=="-2" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "0" /f & pause & goto disenmdeleteable
-if /i "%choice%"=="+2" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "1" /f & pause & goto disenable
-if /i "%choice%"=="-fad" fsutil behavior set disablelastaccess 1 & pause & goto disenable
-if /i "%choice%"=="+fad" fsutil behavior set disablelastaccess 0 & pause & goto disenable
-if /i "%choice%"=="-hbn" powercfg.exe /hibernate off & echo Disable hibernate & pause & goto disenable
-if /i "%choice%"=="+hbn" powercfg.exe /hibernate on & echo Enable hibernate & pause & goto disenable
+if /i "%choice%"=="-1" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "0" /f & pause & goto mdisenable
+if /i "%choice%"=="+1" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "1" /f & pause & goto mdisenable
+if /i "%choice%"=="-2" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "0" /f & pause & goto mdisenable
+if /i "%choice%"=="+2" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "1" /f & pause & goto mdisenable
+if /i "%choice%"=="-fad" fsutil behavior set disablelastaccess 1 & pause & goto mdisenable
+if /i "%choice%"=="+fad" fsutil behavior set disablelastaccess 0 & pause & goto mdisenable
+if /i "%choice%"=="-hbn" powercfg.exe /hibernate off & echo Disable hibernate & pause & goto mdisenable
+if /i "%choice%"=="+hbn" powercfg.exe /hibernate on & echo Enable hibernate & pause & goto mdisenable
 if /i "%choice%"=="n" goto mclean
 if /i "%choice%"=="M" goto menu
 cls
 color 0C
 echo This is not a valid action
 timeout /t 5
-goto disenable
+goto mdisenable
 
 
 :mclean
@@ -208,7 +210,7 @@ goto mwupdate2
 
 :wupdate2
 winget upgrade --all --include-unknown
-if /i %auto% == 1 goto reboot
+if /i %auto% == 1 goto mshutdownreboot
 if /i %auto% == 2 goto defrag
 timeout /t 5
 
@@ -235,7 +237,7 @@ cls
 echo Do you want to check the integrity of hard drives and fix any problems - /CHKDSK ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto chkdsk
-if /i "%choice%"=="N" goto mreboot
+if /i "%choice%"=="N" goto mshutdownreboot
 if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
@@ -243,29 +245,38 @@ goto mchkdsk
 
 :chkdsk
 CHKDSK /f /r
-if /i %auto% == 2 goto reboot
+if /i %auto% == 2 goto mshutdownreboot
 timeout /t 5
 
 
-:mreboot
+:mshutdownreboot
 cls
-echo Do you want to restart the computer?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto reboot
+if /i %autoshutdownreboot% == 0 goto skipshutdownreboot
+if /i %autoshutdownreboot% == 1 goto shutdown
+if /i %autoshutdownreboot% == 2 goto reboot
+echo Do you want to restart/stop the computer?
+set /p choice= R (Reboot) - S (Stop) - N (No)
+if /i "%choice%"=="R" goto reboot
+if /i "%choice%"=="S" goto shutdown
 if /i "%choice%"=="N" goto menu
 if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
-goto mreboot
+goto mshutdownreboot
 
-:reboot
-if /i %autoreboot% == 0 goto skipreboot
+
+:shutdown
 shutdown /s /f /t 20
 timeout /t 10
 goto end
 
+:reboot
+shutdown /r /f /t 20
+timeout /t 10
+goto end
 
-:skipreboot
+
+:skipshutdownreboot
 echo The computer will not restart.
 pause
 goto end
