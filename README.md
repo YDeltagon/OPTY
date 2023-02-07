@@ -107,6 +107,7 @@ ONLY work WITH a **valid** internet connection
 
     - Little fix things
       - mdisenable do not loop anymore
+      - Reorganize auto-opti order
     - Add Shutdown or Reboot option after the auto-opti
 
 #### **v01.0.4 - Link - 2023-01-29**

@@ -34,12 +34,12 @@ echo   0. Exit
 echo.
 set /p choice= Enter action:
 if /i "%choice%"=="1" set auto=0 & goto mdisenable
-if /i "%choice%"=="2" set auto=1 & set autoshutdownreboot=0 & goto delete
-if /i "%choice%"=="3" set auto=2 & set autoshutdownreboot=0 & goto delete
-if /i "%choice%"=="2s" set auto=1 & set autoshutdownreboot=1 & goto delete
-if /i "%choice%"=="3s" set auto=2 & set autoshutdownreboot=1 & goto delete
-if /i "%choice%"=="2r" set auto=1 & set autoshutdownreboot=2 & goto delete
-if /i "%choice%"=="3r" set auto=2 & set autoshutdownreboot=2 & goto delete
+if /i "%choice%"=="2" set auto=1 & set autoshutdownreboot=0 & goto wupdate
+if /i "%choice%"=="3" set auto=2 & set autoshutdownreboot=0 & goto dism
+if /i "%choice%"=="2s" set auto=1 & set autoshutdownreboot=1 & goto wupdate
+if /i "%choice%"=="3s" set auto=2 & set autoshutdownreboot=1 & goto dism
+if /i "%choice%"=="2r" set auto=1 & set autoshutdownreboot=2 & goto wupdate
+if /i "%choice%"=="3r" set auto=2 & set autoshutdownreboot=2 & goto dism
 if /i "%choice%"=="M" goto menu
 color 0C
 echo This is not a valid action
@@ -91,54 +91,6 @@ color 0C
 echo This is not a valid action
 timeout /t 5
 goto mdisenable
-
-
-:mclean
-cls
-echo Execute clean disk - /cleanmgr ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto clean
-if /i "%choice%"=="N" goto mdelete
-if /i "%choice%"=="M" goto menu
-echo This is not a valid action
-timeout /t 5
-goto mclean
-
-:clean
-echo Cleanmgr...
-cleanmgr /sagerun:65535
-if /i %auto% == 1 goto delete
-if /i %auto% == 2 goto delete
-timeout /t 5
-
-
-:mdelete
-cls
-echo Do you want to delete temporary files - /del ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto delete
-if /i "%choice%"=="N" goto mdism
-if /i "%choice%"=="M" goto menu
-echo This is not a valid action
-timeout /t 5
-goto mdelete
-
-:delete
-REM ========= Temp =========
-setlocal
-for /D %%i in ("C:\Users\*") do (
-   echo %%i
-   del /S /F /Q "%%i\AppData\Local\Temp\*"
-)
-endlocal
-del /S /F /Q "%Windir%\Temp"
-rd /S /Q "%SystemRoot%\Temp"
-REM ========= CCMCache =========
-del /F /S /Q "%SystemRoot%\ccmcache\*.*"
-rd /S /Q "%SystemRoot%\ccmcache\"
-if /i %auto% == 1 goto wupdate
-if /i %auto% == 2 goto dism
-timeout /t 5
 
 
 :mdism
@@ -202,7 +154,7 @@ cls
 echo Do you want to update software - /winget ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto wupdate2
-if /i "%choice%"=="N" goto mdefrag
+if /i "%choice%"=="N" goto mclean
 if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
@@ -210,6 +162,53 @@ goto mwupdate2
 
 :wupdate2
 winget upgrade --all --include-unknown
+if /i %auto% == 1 goto delete
+if /i %auto% == 2 goto delete
+timeout /t 5
+
+:mclean
+cls
+echo Execute clean disk - /cleanmgr ?
+set /p choice= Y (Yes) - N (No)
+if /i "%choice%"=="Y" goto clean
+if /i "%choice%"=="N" goto mdelete
+if /i "%choice%"=="M" goto menu
+echo This is not a valid action
+timeout /t 5
+goto mclean
+
+:clean
+echo Cleanmgr...
+cleanmgr /sagerun:65535
+if /i %auto% == 1 goto delete
+if /i %auto% == 2 goto delete
+timeout /t 5
+
+
+:mdelete
+cls
+echo Do you want to delete temporary files - /del ?
+set /p choice= Y (Yes) - N (No)
+if /i "%choice%"=="Y" goto delete
+if /i "%choice%"=="N" goto mdefrag
+if /i "%choice%"=="M" goto menu
+echo This is not a valid action
+timeout /t 5
+goto mdelete
+
+:delete
+REM ========= Temp =========
+setlocal
+for /D %%i in ("C:\Users\*") do (
+   echo %%i
+   del /S /F /Q "%%i\AppData\Local\Temp\*"
+)
+endlocal
+del /S /F /Q "%Windir%\Temp"
+rd /S /Q "%SystemRoot%\Temp"
+REM ========= CCMCache =========
+del /F /S /Q "%SystemRoot%\ccmcache\*.*"
+rd /S /Q "%SystemRoot%\ccmcache\"
 if /i %auto% == 1 goto mshutdownreboot
 if /i %auto% == 2 goto defrag
 timeout /t 5
@@ -228,7 +227,7 @@ goto mdefrag
 
 :defrag
 defrag /C /O /U /V /H
-if /i %auto% == 2 goto chkdsk
+if /i %auto% == 2 goto mshutdownreboot
 timeout /t 5
 
 
@@ -245,7 +244,6 @@ goto mchkdsk
 
 :chkdsk
 CHKDSK /f /r
-if /i %auto% == 2 goto mshutdownreboot
 timeout /t 5
 
 
