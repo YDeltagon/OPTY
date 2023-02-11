@@ -127,9 +127,5 @@ goto menu
 
 
 :Clean_Opty_Curl
-del /f /q "%~dp0Opti.bat"
-del /f /q "%~dp0ReEnable.bat"
-del /f /q "%~dp0RegProfil.bat"
-del /f /q "%~dp0FixUserShellFolderPermissions.ps1"
-del /f /q "%~dp0Menu.bat"
+for /f "delims=" %f in ('dir /b /a-d ^| findstr /v "OPTY.bat"') do @del /f /q "%~dp0%f"
 goto end
