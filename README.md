@@ -32,7 +32,7 @@ ONLY work WITH a **valid** internet connection
 
 - [REPOSITORY](#repository)
   - [**TO-DO**](#to-do)
-  - [**Update script - 2023-01-28**](#update-script---2023-01-28)
+  - [**Autoopti + shutdown - 2023-02-11**](#autoopti--shutdown---2023-02-11)
 - [OPTY](#opty)
   - [**TO-DO**](#to-do-1)
   - [**v01.0.5 - Fix - 2023-02-07**](#v0105---fix---2023-02-07)
@@ -45,7 +45,11 @@ ONLY work WITH a **valid** internet connection
 
     - 
 
-#### **Update script - 2023-01-28**
+#### **AutoOpti + shutdown - 2023-02-11**
+
+    - Add the ability to create a shortcut on the desktop to execute autoopti + shutdown
+
+#### **Update script - 2023-01-28**<!-- omit in toc -->
 
     - Now, OPTY check on GitHub for update
     - All script (opti/enable/reg...) need to be downloaded from GitHub

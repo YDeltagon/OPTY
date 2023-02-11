@@ -1,9 +1,12 @@
+:: 2023-02-11 - autoopti + shutdown   Add if AutoOpti_Shutdown == 1 goto wupdate
+::                                    This is for the new shortcut
 :: 2023-01-29 - auto defrag fix       Fix a bug with auto defrag
 ::                                    Update link GitHub
 :: 2023-01-28 - timeout auto :        If is auto on, no need to wait with timeout
 :: 2023-01-27 - standalone :          Like old, but standalone
 
 
+if /i %AutoOpti_Shutdown% == 1 goto wupdate
 :mopti
 color F5
 cls
@@ -264,14 +267,14 @@ goto mshutdownreboot
 
 
 :shutdown
-shutdown /s /f /t 20
-timeout /t 10
-goto end
+shutdown /s /f /t 15
+timeout /t 15
+exit
 
 :reboot
-shutdown /r /f /t 20
-timeout /t 10
-goto end
+shutdown /r /f /t 15
+timeout /t 15
+exit
 
 
 :skipshutdownreboot
