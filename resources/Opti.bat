@@ -7,6 +7,8 @@
 
 
 if /i %AutoOpti_Shutdown% == 1 goto wupdate
+
+
 :mopti
 color F5
 cls
@@ -18,10 +20,10 @@ echo   1. Manual
 echo   2. Auto (lite)
 echo   3. Auto (Full)
 echo.
+echo   5. Create a shortcut for Auto (lite) + Shutdown
+echo.
 echo  If you want reboot/stop after autoopti, type "r" or"s" after the number - 2r/3s/2s/3r
 echo  If you don't want reboot/stop, type nothing after the number - 2/3
-echo.
-echo.
 echo.
 echo.
 echo.
@@ -42,10 +44,24 @@ if /i "%choice%"=="3" set auto=2 & set autoshutdownreboot=0 & goto dism
 if /i "%choice%"=="2s" set auto=1 & set autoshutdownreboot=1 & goto wupdate
 if /i "%choice%"=="3s" set auto=2 & set autoshutdownreboot=1 & goto dism
 if /i "%choice%"=="2r" set auto=1 & set autoshutdownreboot=2 & goto wupdate
-if /i "%choice%"=="3r" set auto=2 & set autoshutdownreboot=2 & goto dism
+if /i "%choice%"=="3r" set auto=2 & set autoshutdownreboot=2 & goto dism+
+if /i "%choice%"=="5" goto CreateAutoOpti_Shutdown
 if /i "%choice%"=="M" goto menu
 color 0C
 echo This is not a valid action
+timeout /t 5
+goto mopti
+
+
+:CreateAutoOpti_Shutdown
+set GitHubRawLink=https://raw.githubusercontent.com/YDeltagon/OPTY/master/resources/
+curl -o "AutoOpti + Shutdown.bat" -LJO "%GitHubRawLink%AutoOpti + Shutdown.bat"
+curl -o "Shortcut - AutoOpti + Shutdown.ps1" -LJO "%GitHubRawLink%Shortcut - AutoOpti + Shutdown.ps1"
+powershell.exe -ExecutionPolicy Bypass -File "Shortcut - AutoOpti + Shutdown.ps1"
+del /f /q "Shortcut - AutoOpti + Shutdown.ps1"
+echo.
+echo  OK
+echo.
 timeout /t 5
 goto mopti
 

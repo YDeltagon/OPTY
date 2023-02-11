@@ -83,10 +83,10 @@ goto AutoOpti_Shutdown
 
 REM Update AutoOpti + Shutdown.bat
 :Update_AutoOpti_Shutdown
-curl -o "AutoOpti + Shutdown.bat" -LJO "%GitHubRawLink%AutoOpti + Shutdown.bat"
-powershell.exe -ExecutionPolicy Bypass -File "%~dp0AutoOpti + Shutdown.bat"
-pause
-goto AutoOpti_Shutdown
+curl -o "new AutoOpti + Shutdown.bat" -LJO "%GitHubRawLink%AutoOpti + Shutdown.bat"
+move /y "new AutoOpti + Shutdown.bat" "AutoOpti + Shutdown.bat"
+start "" "AutoOpti + Shutdown.bat"
+exit
 
 
 :AutoOpti_Shutdown
