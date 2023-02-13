@@ -5,6 +5,16 @@
 REM set variables
 set GitHubRawLink=https://raw.githubusercontent.com/YDeltagon/OPTY/master/resources/
 
+
+if "%UpdateOK%"=="1" (
+    echo.
+    echo  Update successful.
+    echo.
+    timeout /t 1
+    goto AutoOpti_Shutdown
+)
+
+
 REM Check if running as administrator
 net session >nul 2>&1
 if %errorlevel% == 0 (
@@ -84,7 +94,7 @@ REM Update AutoOptiShutdown.bat
 :Update_AutoOpti_Shutdown
 curl -o new "AutoOptiShutdown.bat" -LJO %GitHubRawLink%AutoOptiShutdown.bat
 move /y new AutoOptiShutdown.bat AutoOptiShutdown.bat
-start "" "AutoOptiShutdown.bat"
+set UpdateOK=1 & start "" "AutoOptiShutdown.bat"
 exit
 
 
