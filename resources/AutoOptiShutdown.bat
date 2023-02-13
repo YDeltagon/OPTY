@@ -8,19 +8,18 @@ set GitHubRawLink=https://raw.githubusercontent.com/YDeltagon/OPTY/master/resour
 REM Check if running as administrator
 net session >nul 2>&1
 if %errorlevel% == 0 (
-    set admin=1
     echo.
     echo  Running as administrator
     echo.
     timeout /t 1
     goto shortcut
 ) else (
-    set admin=0
+    color 40
     echo.
     echo  Not running as administrator
     echo  Please run this script as administrator.
     echo.
-    timeout /t 5
+    pause
     exit
 )
 
