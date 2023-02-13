@@ -30,11 +30,11 @@ REM Check if running from C:\OPTY_by-YannD\AutoOptiShutdown.bat if not copy it t
 if not "%~dp0" == "C:\OPTY_by-YannD\" (
     md "C:\OPTY_by-YannD"
     xcopy /y %~dp0AutoOptiShutdown.bat C:\OPTY_by-YannD
-    curl -o %~dp0Shortcut_AutoOptiShutdown.ps1 -LJO %GitHubRawLink%Shortcut_AutoOptiShutdown.ps1
-    powershell.exe -ExecutionPolicy Bypass -File %~dp0Shortcut_AutoOptiShutdown.ps1
-    del /f /q %~dp0Shortcut_AutoOptiShutdown.ps1
+    curl -o "%~dp0Shortcut_AutoOptiShutdown.ps1" -LJO %GitHubRawLink%Shortcut_AutoOptiShutdown.ps1
+    powershell.exe -ExecutionPolicy Bypass -File "%~dp0Shortcut_AutoOptiShutdown.ps1"
+    del /f /q "%~dp0Shortcut_AutoOptiShutdown.ps1"
     start "" "C:\OPTY_by-YannD\AutoOptiShutdown.bat"
-    del %~dp0AutoOptiShutdown.bat
+    del "%~dp0AutoOptiShutdown.bat"
     exit
 )
 
@@ -83,7 +83,7 @@ goto AutoOpti_Shutdown
 
 REM Update AutoOptiShutdown.bat
 :Update_AutoOpti_Shutdown
-curl -o new AutoOptiShutdown.bat -LJO %GitHubRawLink%AutoOptiShutdown.bat
+curl -o new "AutoOptiShutdown.bat" -LJO %GitHubRawLink%AutoOptiShutdown.bat
 move /y new AutoOptiShutdown.bat AutoOptiShutdown.bat
 start "" "AutoOptiShutdown.bat"
 exit
