@@ -36,10 +36,10 @@ REM Check if running from C:\OPTY_by-YannD\OPTY.bat if not copy it to C:\OPTY_by
 :shortcut
 if not "%~dp0" == "C:\OPTY_by-YannD\" (
     md "C:\OPTY_by-YannD"
-    xcopy /y "%~dp0OPTY.bat" "C:\OPTY_by-YannD"
-    curl -o "%~dp0Shortcut - OPTY.ps1" -LJO "%GitHubRawLink%Shortcut - OPTY.ps1"
-    powershell.exe -ExecutionPolicy Bypass -File "%~dp0Shortcut - OPTY.ps1"
-    del /f /q "%~dp0Shortcut - OPTY.ps1"
+    xcopy /y %~dp0OPTY.bat C:\OPTY_by-YannD
+    curl -o %~dp0Shortcut_OPTY.ps1 -LJO %GitHubRawLink%Shortcut_OPTY.ps1
+    powershell.exe -ExecutionPolicy Bypass -File %~dp0Shortcut_OPTY.ps1
+    del /f /q %~dp0Shortcut_OPTY.ps1
     start "" "C:\OPTY_by-YannD\OPTY.bat"
     del "%~dp0OPTY.bat"
     exit
