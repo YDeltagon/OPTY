@@ -94,7 +94,8 @@ REM Update AutoOptiShutdown.bat
 :Update_AutoOpti_Shutdown
 curl -o new "AutoOptiShutdown.bat" -LJO %GitHubRawLink%AutoOptiShutdown.bat
 move /y new AutoOptiShutdown.bat AutoOptiShutdown.bat
-set UpdateOK=1 & start "" "AutoOptiShutdown.bat"
+set UpdateOK=1
+call "AutoOptiShutdown.bat"
 exit
 
 
