@@ -56,10 +56,10 @@ goto mopti
 
 :CreateAutoOpti_Shutdown
 set GitHubRawLink=https://raw.githubusercontent.com/YDeltagon/OPTY/master/resources/
-curl -o "AutoOpti + Shutdown.bat" -LJO "%GitHubRawLink%AutoOpti + Shutdown.bat"
-curl -o "Shortcut - AutoOpti + Shutdown.ps1" -LJO "%GitHubRawLink%Shortcut - AutoOpti + Shutdown.ps1"
-powershell.exe -ExecutionPolicy Bypass -File "Shortcut - AutoOpti + Shutdown.ps1"
-del /f /q "Shortcut - AutoOpti + Shutdown.ps1"
+curl -o AutoOptiShutdown.bat -LJO %GitHubRawLink%AutoOptiShutdown.bat
+curl -o Shortcut_AutoOptiShutdown.ps1 -LJO %GitHubRawLink%Shortcut_AutoOptiShutdown.ps1
+powershell.exe -ExecutionPolicy Bypass -File Shortcut_AutoOptiShutdown.ps1
+del /f /q Shortcut_AutoOptiShutdown.ps1
 echo.
 echo  OK
 echo.

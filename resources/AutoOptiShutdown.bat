@@ -5,36 +5,45 @@
 REM set variables
 set GitHubRawLink=https://raw.githubusercontent.com/YDeltagon/OPTY/master/resources/
 
+
+if "%UpdateOK%"=="1" (
+    echo.
+    echo  Update successful.
+    echo.
+    timeout /t 1
+    goto AutoOpti_Shutdown
+)
+
+
 REM Check if running as administrator
 net session >nul 2>&1
 if %errorlevel% == 0 (
-    set admin=1
     echo.
     echo  Running as administrator
     echo.
     timeout /t 1
     goto shortcut
 ) else (
-    set admin=0
+    color 40
     echo.
     echo  Not running as administrator
     echo  Please run this script as administrator.
     echo.
-    timeout /t 5
+    pause
     exit
 )
 
 
-REM Check if running from C:\OPTY_by-YannD\AutoOpti + Shutdown.bat if not copy it to C:\OPTY_by-YannD\AutoOpti + Shutdown.bat and create a shortcut on desktop
+REM Check if running from C:\OPTY_by-YannD\AutoOptiShutdown.bat if not copy it to C:\OPTY_by-YannD\AutoOptiShutdown.bat and create a shortcut on desktop
 :shortcut
 if not "%~dp0" == "C:\OPTY_by-YannD\" (
     md "C:\OPTY_by-YannD"
-    xcopy /y "%~dp0AutoOpti + Shutdown.bat" "C:\OPTY_by-YannD"
-    curl -o "%~dp0Shortcut - AutoOpti + Shutdown.ps1" -LJO "%GitHubRawLink%Shortcut - AutoOpti + Shutdown.ps1"
-    powershell.exe -ExecutionPolicy Bypass -File "%~dp0Shortcut - AutoOpti + Shutdown.ps1"
-    del /f /q "%~dp0Shortcut - AutoOpti + Shutdown.ps1"
-    start "" "C:\OPTY_by-YannD\AutoOpti + Shutdown.bat"
-    del "%~dp0AutoOpti + Shutdown.bat"
+    xcopy /y %~dp0AutoOptiShutdown.bat C:\OPTY_by-YannD
+    curl -o "%~dp0Shortcut_AutoOptiShutdown.ps1" -LJO %GitHubRawLink%Shortcut_AutoOptiShutdown.ps1
+    powershell.exe -ExecutionPolicy Bypass -File "%~dp0Shortcut_AutoOptiShutdown.ps1"
+    del /f /q "%~dp0Shortcut_AutoOptiShutdown.ps1"
+    start "" "C:\OPTY_by-YannD\AutoOptiShutdown.bat"
+    del "%~dp0AutoOptiShutdown.bat"
     exit
 )
 
@@ -81,11 +90,12 @@ timeout /t 3
 goto AutoOpti_Shutdown
 
 
-REM Update AutoOpti + Shutdown.bat
+REM Update AutoOptiShutdown.bat
 :Update_AutoOpti_Shutdown
-curl -o "new AutoOpti + Shutdown.bat" -LJO "%GitHubRawLink%AutoOpti + Shutdown.bat"
-move /y "new AutoOpti + Shutdown.bat" "AutoOpti + Shutdown.bat"
-start "" "AutoOpti + Shutdown.bat"
+curl -o new "AutoOptiShutdown.bat" -LJO %GitHubRawLink%AutoOptiShutdown.bat
+move /y new AutoOptiShutdown.bat AutoOptiShutdown.bat
+set UpdateOK=1
+call "AutoOptiShutdown.bat"
 exit
 
 

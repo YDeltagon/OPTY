@@ -77,7 +77,7 @@ echo.
 echo   0. Exit
 echo.
 set /p choice= Enter action:
-if "%choice%"=="1" goto optytomopti
+if "%choice%"=="1" goto optytomopti 
 if "%choice%"=="2" goto optytomreenable
 if "%choice%"=="3" goto optytomregprofil
 if "%choice%"=="9" goto Clean_Opty_Curl
@@ -93,6 +93,7 @@ goto menu
 
 
 :optytomopti
+set AutoOpti_Shutdown=0
 curl -o "Opti.bat" -LJO %GitHubRawLink%Opti.bat
 call "Opti.bat"
 goto menu

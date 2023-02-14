@@ -32,7 +32,8 @@ ONLY work WITH a **valid** internet connection
 
 - [REPOSITORY](#repository)
   - [**TO-DO**](#to-do)
-  - [**Autoopti + shutdown - 2023-02-11**](#autoopti--shutdown---2023-02-11)
+  - [**AutoOpti + shutdown - FIX - 2023-02-13**](#autoopti--shutdown---fix---2023-02-13)
+  - [**AutoOpti + shutdown - 2023-02-11**](#autoopti--shutdown---2023-02-11)
 - [OPTY](#opty)
   - [**TO-DO**](#to-do-1)
   - [**v01.0.5 - Fix - 2023-02-07**](#v0105---fix---2023-02-07)
@@ -44,6 +45,12 @@ ONLY work WITH a **valid** internet connection
 #### **TO-DO**
 
     - 
+
+#### **AutoOpti + shutdown - FIX - 2023-02-13**
+
+    - Fix a bug in the auto-opti + shutdown
+      - Shurtcut is working
+      - AutoOptiShutdown rename without space
 
 #### **AutoOpti + shutdown - 2023-02-11**
 
