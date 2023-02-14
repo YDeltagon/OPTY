@@ -84,6 +84,7 @@ if "%choice%"=="9" goto Clean_Opty_Curl
 if "%choice%"=="0" goto end
 if "%choice%"=="ns" goto nshutdown
 if "%choice%"=="oup" goto update_opty
+if "%choice%"=="perso" goto mupdate_perso
 if /i "%choice%"=="M" goto menu
 color 0C
 echo This is not a valid action
@@ -129,3 +130,9 @@ goto menu
 :Clean_Opty_Curl
 for /f "delims=" %f in ('dir /b /a-d ^| findstr /v "OPTY.bat"') do @del /f /q "%~dp0%f"
 goto end
+
+
+:mupdate_perso
+curl -o "MIDIOFF.mp3" -LJO %GitHubRawLink%MIDIOFF.mp3
+curl -o "MIDION.mp3" -LJO %GitHubRawLink%MIDION.mp3
+pause
