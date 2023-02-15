@@ -164,7 +164,7 @@ goto mwupdate
 usoclient StartScan
 usoclient RefreshSettings
 usoclient StartInstall
-if /i %auto% == 1 goto wupdate2
+if /i %auto% == 1 goto delete
 if /i %auto% == 2 goto wupdate2
 timeout /t 5
 
@@ -182,7 +182,6 @@ goto mwupdate2
 
 :wupdate2
 winget upgrade --all --include-unknown
-if /i %auto% == 1 goto delete
 if /i %auto% == 2 goto delete
 timeout /t 5
 
