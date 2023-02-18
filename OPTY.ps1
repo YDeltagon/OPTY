@@ -1,7 +1,7 @@
 Add-Type -AssemblyName System.Windows.Forms
 
 # Get the local version of the script
-$currentVersion = "V01.0.4"
+$currentVersion = "V01.0.5"
 
 # Create a form for the loading screen
 $loadingForm = New-Object System.Windows.Forms.Form
