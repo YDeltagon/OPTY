@@ -6,9 +6,6 @@
 :: 2023-01-27 - standalone :          Like old, but standalone
 
 
-if /i %AutoOpti_Shutdown% == 1 goto wupdate
-
-
 :mopti
 color F5
 cls
@@ -48,6 +45,7 @@ if /i "%choice%"=="3r" set auto=2 & set autoshutdownreboot=2 & goto dism+
 if /i "%choice%"=="5" goto CreateAutoOpti_Shutdown
 if /i "%choice%"=="M" goto menu
 if /i "%choice%"=="0" goto end
+if /i %AutoOpti_Shutdown% =="1" goto wupdate
 color 0C
 echo This is not a valid action
 timeout /t 5
