@@ -1,3 +1,4 @@
+:: 2023-04-12 - fix                   fix code and rename auto > autoclean
 :: 2023-02-11 - autoopti + shutdown   Add if AutoOpti_Shutdown == 1 goto wupdate
 ::                                    This is for the new shortcut
 :: 2023-01-29 - auto defrag fix       Fix a bug with auto defrag
@@ -38,13 +39,13 @@ echo   M. Menu
 echo   0. Exit
 echo.
 set /p choice= Enter action:
-if /i "%choice%"=="1" set auto=0 & goto mdisenable
-if /i "%choice%"=="2" set auto=1 & set autoshutdownreboot=0 & goto wupdate
-if /i "%choice%"=="3" set auto=2 & set autoshutdownreboot=0 & goto dism
-if /i "%choice%"=="2s" set auto=1 & set autoshutdownreboot=1 & goto wupdate
-if /i "%choice%"=="3s" set auto=2 & set autoshutdownreboot=1 & goto dism
-if /i "%choice%"=="2r" set auto=1 & set autoshutdownreboot=2 & goto wupdate
-if /i "%choice%"=="3r" set auto=2 & set autoshutdownreboot=2 & goto dism+
+if /i "%choice%"=="1" set autoclean=0 & goto mdisenable
+if /i "%choice%"=="2" set autoclean=1 & set autoshutdownreboot=0 & goto wupdate
+if /i "%choice%"=="3" set autoclean=2 & set autoshutdownreboot=0 & goto dism
+if /i "%choice%"=="2s" set autoclean=1 & set autoshutdownreboot=1 & goto wupdate
+if /i "%choice%"=="3s" set autoclean=2 & set autoshutdownreboot=1 & goto dism
+if /i "%choice%"=="2r" set autoclean=1 & set autoshutdownreboot=2 & goto wupdate
+if /i "%choice%"=="3r" set autoclean=2 & set autoshutdownreboot=2 & goto dism
 if /i "%choice%"=="5" goto CreateAutoOpti_Shutdown
 if /i "%choice%"=="M" goto menu
 if /i "%choice%"=="0" goto end
@@ -104,7 +105,7 @@ if /i "%choice%"=="-fad" fsutil behavior set disablelastaccess 1 & pause & goto 
 if /i "%choice%"=="+fad" fsutil behavior set disablelastaccess 0 & pause & goto mdisenable
 if /i "%choice%"=="-hbn" powercfg.exe /hibernate off & echo Disable hibernate & pause & goto mdisenable
 if /i "%choice%"=="+hbn" powercfg.exe /hibernate on & echo Enable hibernate & pause & goto mdisenable
-if /i "%choice%"=="n" goto mclean
+if /i "%choice%"=="n" goto mdism
 if /i "%choice%"=="M" goto menu
 cls
 color 0C
@@ -128,7 +129,7 @@ goto mdism
 Dism /Online /Cleanup-Image /ScanHealth
 Dism /Online /Cleanup-Image /CheckHealth
 Dism /Online /Cleanup-Image /RestoreHealth
-if /i %auto% == 2 goto sfc
+if /i %autoclean% == 2 goto sfc
 timeout /t 5
 
 
@@ -145,7 +146,7 @@ goto msfc
 
 :sfc
 sfc /scannow
-if /i %auto% == 2 goto wupdate
+if /i %autoclean% == 2 goto wupdate
 timeout /t 5
 
 
@@ -164,8 +165,8 @@ goto mwupdate
 usoclient StartScan
 usoclient RefreshSettings
 usoclient StartInstall
-if /i %auto% == 1 goto delete
-if /i %auto% == 2 goto wupdate2
+if /i %autoclean% == 1 goto delete
+if /i %autoclean% == 2 goto wupdate2
 timeout /t 5
 
 
@@ -182,7 +183,7 @@ goto mwupdate2
 
 :wupdate2
 winget upgrade --all --include-unknown
-if /i %auto% == 2 goto delete
+if /i %autoclean% == 2 goto delete
 timeout /t 5
 
 :mclean
@@ -199,8 +200,8 @@ goto mclean
 :clean
 echo Cleanmgr...
 cleanmgr /sagerun:65535
-if /i %auto% == 1 goto delete
-if /i %auto% == 2 goto delete
+if /i %autoclean% == 1 goto delete
+if /i %autoclean% == 2 goto delete
 timeout /t 5
 
 
@@ -228,8 +229,8 @@ rd /S /Q "%SystemRoot%\Temp"
 REM ========= CCMCache =========
 del /F /S /Q "%SystemRoot%\ccmcache\*.*"
 rd /S /Q "%SystemRoot%\ccmcache\"
-if /i %auto% == 1 goto mshutdownreboot
-if /i %auto% == 2 goto defrag
+if /i %autoclean% == 1 goto mshutdownreboot
+if /i %autoclean% == 2 goto defrag
 timeout /t 5
 
 
@@ -246,7 +247,7 @@ goto mdefrag
 
 :defrag
 defrag /C /O /U /V /H
-if /i %auto% == 2 goto mshutdownreboot
+if /i %autoclean% == 2 goto mshutdownreboot
 timeout /t 5
 
 
