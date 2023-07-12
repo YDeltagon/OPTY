@@ -1,3 +1,4 @@
+:: 2023-07-12 - Remove Winget         Remove Winget > Use "winget install wingetui" on your powershell
 :: 2023-04-12 - fix                   fix code and rename auto > autoclean
 :: 2023-02-11 - autoopti + shutdown   Add if AutoOpti_Shutdown == 1 goto wupdate
 ::                                    This is for the new shortcut
@@ -155,7 +156,7 @@ cls
 echo Do you want to update Windows - /usoclient ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto wupdate
-if /i "%choice%"=="N" goto mwupdate2
+if /i "%choice%"=="N" goto mclean
 if /i "%choice%"=="M" goto menu
 echo This is not a valid action
 timeout /t 5
@@ -166,24 +167,7 @@ usoclient StartScan
 usoclient RefreshSettings
 usoclient StartInstall
 if /i %autoclean% == 1 goto delete
-if /i %autoclean% == 2 goto wupdate2
-timeout /t 5
-
-
-:mwupdate2
-cls
-echo Do you want to update software - /winget ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto wupdate2
-if /i "%choice%"=="N" goto mclean
-if /i "%choice%"=="M" goto menu
-echo This is not a valid action
-timeout /t 5
-goto mwupdate2
-
-:wupdate2
-winget upgrade --all --include-unknown
-if /i %autoclean% == 2 goto delete
+if /i %autoclean% == 2 goto clean
 timeout /t 5
 
 :mclean
