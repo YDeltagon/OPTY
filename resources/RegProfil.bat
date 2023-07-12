@@ -1,5 +1,6 @@
 :: 2023-01-27 - standalone :          Like old, but standalone
 
+:mreenable
 color FC
 cls
 echo.
