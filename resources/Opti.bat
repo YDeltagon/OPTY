@@ -1,3 +1,4 @@
+:: 2023-08-16 - fix                   Fix a bug if you choice the "manual", crash after chkdsk : fix
 :: 2023-07-12 - Remove Winget         Remove Winget > Use "winget install wingetui" on your powershell
 :: 2023-04-12 - fix                   fix code and rename auto > autoclean
 :: 2023-02-11 - autoopti + shutdown   Add if AutoOpti_Shutdown == 1 goto wupdate
@@ -40,7 +41,7 @@ echo   M. Menu
 echo   0. Exit
 echo.
 set /p choice= Enter action:
-if /i "%choice%"=="1" set autoclean=0 & goto mdisenable
+if /i "%choice%"=="1" set autoclean=0 & set autoshutdownreboot=5 & goto mdisenable
 if /i "%choice%"=="2" set autoclean=1 & set autoshutdownreboot=0 & goto wupdate
 if /i "%choice%"=="3" set autoclean=2 & set autoshutdownreboot=0 & goto dism
 if /i "%choice%"=="2s" set autoclean=1 & set autoshutdownreboot=1 & goto wupdate
@@ -256,6 +257,10 @@ cls
 if /i %autoshutdownreboot% == 0 goto skipshutdownreboot
 if /i %autoshutdownreboot% == 1 goto shutdown
 if /i %autoshutdownreboot% == 2 goto reboot
+if /i %autoshutdownreboot% == 5 goto mshutdownrebootfix
+
+
+:mshutdownrebootfix
 echo Do you want to restart/stop the computer?
 set /p choice= R (Reboot) - S (Stop) - N (No)
 if /i "%choice%"=="R" goto reboot
