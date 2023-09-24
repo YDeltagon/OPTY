@@ -1,3 +1,4 @@
+:: 2023-09-24 - add                   Add netdns(ipconfig & netsh) - Add del Prefetch & Logs - and some other del
 :: 2023-08-16 - fix                   Fix a bug if you choice the "manual", crash after chkdsk : fix
 :: 2023-07-12 - Remove Winget         Remove Winget > Use "winget install wingetui" on your powershell
 :: 2023-04-12 - fix                   fix code and rename auto > autoclean
@@ -43,11 +44,11 @@ echo.
 set /p choice= Enter action:
 if /i "%choice%"=="1" set autoclean=0 & set autoshutdownreboot=5 & goto mdisenable
 if /i "%choice%"=="2" set autoclean=1 & set autoshutdownreboot=0 & goto wupdate
-if /i "%choice%"=="3" set autoclean=2 & set autoshutdownreboot=0 & goto dism
+if /i "%choice%"=="3" set autoclean=2 & set autoshutdownreboot=0 & goto stopapps
 if /i "%choice%"=="2s" set autoclean=1 & set autoshutdownreboot=1 & goto wupdate
-if /i "%choice%"=="3s" set autoclean=2 & set autoshutdownreboot=1 & goto dism
+if /i "%choice%"=="3s" set autoclean=2 & set autoshutdownreboot=1 & goto stopapps
 if /i "%choice%"=="2r" set autoclean=1 & set autoshutdownreboot=2 & goto wupdate
-if /i "%choice%"=="3r" set autoclean=2 & set autoshutdownreboot=2 & goto dism
+if /i "%choice%"=="3r" set autoclean=2 & set autoshutdownreboot=2 & goto stopapps
 if /i "%choice%"=="5" goto CreateAutoOpti_Shutdown
 if /i "%choice%"=="M" goto menu
 if /i "%choice%"=="0" goto end
@@ -107,7 +108,7 @@ if /i "%choice%"=="-fad" fsutil behavior set disablelastaccess 1 & pause & goto 
 if /i "%choice%"=="+fad" fsutil behavior set disablelastaccess 0 & pause & goto mdisenable
 if /i "%choice%"=="-hbn" powercfg.exe /hibernate off & echo Disable hibernate & pause & goto mdisenable
 if /i "%choice%"=="+hbn" powercfg.exe /hibernate on & echo Enable hibernate & pause & goto mdisenable
-if /i "%choice%"=="n" goto mdism
+if /i "%choice%"=="n" goto mnetdns
 if /i "%choice%"=="M" goto menu
 cls
 color 0C
@@ -116,9 +117,33 @@ timeout /t 5
 goto mdisenable
 
 
+:stopapps
+cls
+echo Stop your background apps !
+pause
+if /i %autoclean% == 2 goto netdns
+
+
+:mnetdns
+cls
+echo Do you want to flushdns and ip reset - IPCONFIG & NETSH ?
+set /p choice= Y (Yes) - N (No)
+if /i "%choice%"=="Y" goto netdns
+if /i "%choice%"=="N" goto mdism
+if /i "%choice%"=="M" goto menu
+echo This is not a valid action
+timeout /t 5
+goto mnetdns
+
+:netdns
+ipconfig /flushdns
+netsh int ip reset
+if /i %autoclean% == 2 goto dism
+timeout /t 5
+
 :mdism
 cls
-echo Do you want to dismy the integrity of the Windows image and correct problems - /Dism ?
+echo Do you want to dismy the integrity of the Windows image and correct problems - DISM ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto dism
 if /i "%choice%"=="N" goto msfc
@@ -137,7 +162,7 @@ timeout /t 5
 
 :msfc
 cls
-echo Do you want to verify the integrity of system files and fix problems - /sfc ?
+echo Do you want to verify the integrity of system files and fix problems - SFC ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto sfc
 if /i "%choice%"=="N" goto mwupdate
@@ -154,7 +179,7 @@ timeout /t 5
 
 :mwupdate
 cls
-echo Do you want to update Windows - /usoclient ?
+echo Do you want to update Windows - USOCLIENT ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto wupdate
 if /i "%choice%"=="N" goto mclean
@@ -168,12 +193,12 @@ usoclient StartScan
 usoclient RefreshSettings
 usoclient StartInstall
 if /i %autoclean% == 1 goto delete
-if /i %autoclean% == 2 goto clean
+if /i %autoclean% == 2 goto delete
 timeout /t 5
 
 :mclean
 cls
-echo Execute clean disk - /cleanmgr ?
+echo Execute clean disk - CLEANMGR ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto clean
 if /i "%choice%"=="N" goto mdelete
@@ -185,14 +210,11 @@ goto mclean
 :clean
 echo Cleanmgr...
 cleanmgr /sagerun:65535
-if /i %autoclean% == 1 goto delete
-if /i %autoclean% == 2 goto delete
 timeout /t 5
-
 
 :mdelete
 cls
-echo Do you want to delete temporary files - /del ?
+echo Do you want to delete temporary files - DEL ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto delete
 if /i "%choice%"=="N" goto mdefrag
@@ -202,6 +224,35 @@ timeout /t 5
 goto mdelete
 
 :delete
+REM ========= Windows Update Cache =========
+net stop wuauserv
+del /S /F /Q "C:\Windows\SoftwareDistribution\Download\*"
+net start wuauserv
+REM ========= Windows Error Reporting =========
+del /S /F /Q "%LOCALAPPDATA%\Microsoft\Windows\WER\ReportQueue\*"
+del /S /F /Q "%LOCALAPPDATA%\Microsoft\Windows\WER\ReportArchive\*"
+REM ========= Steam =========
+del /S /F /Q "%ProgramFiles(x86)%\Steam\appcache"
+del /S /F /Q "%ProgramFiles(x86)%\Steam\depotcache"
+REM ========= Ubisoft Connect =========
+del /S /F /Q "%ProgramFiles(x86)%\Ubisoft\Ubisoft Game Launcher\cache"
+REM ========= Discord =========
+del /S /F /Q "%APPDATA%\discord\Cache"
+REM ========= AMD =========
+del /S /F /Q "%LOCALAPPDATA%\AMD\DxCache"
+REM ========= NVIDIA =========
+del /S /F /Q "%ProgramData%\NVIDIA Corporation\NV_Cache"
+REM ========= FNTCACHE =========
+del /S /F /Q "%WINDIR%\System32\FNTCACHE.DAT"
+REM ========= Web Cache =========
+del /S /F /Q "%LOCALAPPDATA%\Google\Chrome\User Data\Default\Cache"
+del /S /F /Q "%APPDATA%\Mozilla\Firefox\Profiles\*\cache2"
+REM ========= Logs =========
+del /S /F /Q "%WINDIR%\Logs\*
+REM ========= Prefetch =========
+del /S /F /Q "%WINDIR%\Prefetch\*"
+REM ========= SoftwareDistribution =========
+del /S /F /Q "%WINDIR%\SoftwareDistribution\*"
 REM ========= Temp =========
 setlocal
 for /D %%i in ("C:\Users\*") do (
@@ -209,11 +260,11 @@ for /D %%i in ("C:\Users\*") do (
    del /S /F /Q "%%i\AppData\Local\Temp\*"
 )
 endlocal
-del /S /F /Q "%Windir%\Temp"
-rd /S /Q "%SystemRoot%\Temp"
+del /S /F /Q "%WINDIR%\Temp"
+rd /S /Q "%WINDIR%\Temp"
 REM ========= CCMCache =========
-del /F /S /Q "%SystemRoot%\ccmcache\*.*"
-rd /S /Q "%SystemRoot%\ccmcache\"
+del /F /S /Q "%WINDIR%\ccmcache\*.*"
+rd /S /Q "%WINDIR%\ccmcache\"
 if /i %autoclean% == 1 goto mshutdownreboot
 if /i %autoclean% == 2 goto defrag
 timeout /t 5
@@ -221,7 +272,7 @@ timeout /t 5
 
 :mdefrag
 cls
-echo Do you want to defragment HDD or optimize SSD - /defrag ?
+echo Do you want to defragment HDD or optimize SSD - DEFRAG ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto defrag
 if /i "%choice%"=="N" goto mchkdsk
@@ -238,7 +289,7 @@ timeout /t 5
 
 :mchkdsk
 cls
-echo Do you want to check the integrity of hard drives and fix any problems - /CHKDSK ?
+echo Do you want to check the integrity of hard drives and fix any problems - CHKDSK ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto chkdsk
 if /i "%choice%"=="N" goto mshutdownreboot
