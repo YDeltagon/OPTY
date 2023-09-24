@@ -9,9 +9,7 @@
 :: 2023-01-28 - timeout auto :        If is auto on, no need to wait with timeout
 :: 2023-01-27 - standalone :          Like old, but standalone
 
-
 if /i %AutoOpti_Shutdown% == 1 goto wupdate
-
 
 :mopti
 color F5
@@ -122,7 +120,6 @@ cls
 echo Stop your background apps !
 pause
 if /i %autoclean% == 2 goto netdns
-
 
 :mnetdns
 cls
