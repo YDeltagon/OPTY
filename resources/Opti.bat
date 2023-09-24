@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 :: 2023-09-24 - add                   Add netdns(ipconfig & netsh) - Add del Prefetch & Logs - and some other del
+=======
+:: 2023-09-24 - add                   Add netdns(ipconfig & netsh) - Add del Prefetch & Logs - 
+>>>>>>> 434f8bc89f323bf507964d7ffa01ef5d573ddc2a
 :: 2023-08-16 - fix                   Fix a bug if you choice the "manual", crash after chkdsk : fix
 :: 2023-07-12 - Remove Winget         Remove Winget > Use "winget install wingetui" on your powershell
 :: 2023-04-12 - fix                   fix code and rename auto > autoclean
@@ -44,11 +48,19 @@ echo.
 set /p choice= Enter action:
 if /i "%choice%"=="1" set autoclean=0 & set autoshutdownreboot=5 & goto mdisenable
 if /i "%choice%"=="2" set autoclean=1 & set autoshutdownreboot=0 & goto wupdate
+<<<<<<< HEAD
 if /i "%choice%"=="3" set autoclean=2 & set autoshutdownreboot=0 & goto stopapps
 if /i "%choice%"=="2s" set autoclean=1 & set autoshutdownreboot=1 & goto wupdate
 if /i "%choice%"=="3s" set autoclean=2 & set autoshutdownreboot=1 & goto stopapps
 if /i "%choice%"=="2r" set autoclean=1 & set autoshutdownreboot=2 & goto wupdate
 if /i "%choice%"=="3r" set autoclean=2 & set autoshutdownreboot=2 & goto stopapps
+=======
+if /i "%choice%"=="3" set autoclean=2 & set autoshutdownreboot=0 & goto netdns
+if /i "%choice%"=="2s" set autoclean=1 & set autoshutdownreboot=1 & goto wupdate
+if /i "%choice%"=="3s" set autoclean=2 & set autoshutdownreboot=1 & goto netdns
+if /i "%choice%"=="2r" set autoclean=1 & set autoshutdownreboot=2 & goto wupdate
+if /i "%choice%"=="3r" set autoclean=2 & set autoshutdownreboot=2 & goto netdns
+>>>>>>> 434f8bc89f323bf507964d7ffa01ef5d573ddc2a
 if /i "%choice%"=="5" goto CreateAutoOpti_Shutdown
 if /i "%choice%"=="M" goto menu
 if /i "%choice%"=="0" goto end
@@ -117,6 +129,7 @@ timeout /t 5
 goto mdisenable
 
 
+<<<<<<< HEAD
 :stopapps
 cls
 echo Stop your background apps !
@@ -124,6 +137,8 @@ pause
 if /i %autoclean% == 2 goto netdns
 
 
+=======
+>>>>>>> 434f8bc89f323bf507964d7ffa01ef5d573ddc2a
 :mnetdns
 cls
 echo Do you want to flushdns and ip reset - IPCONFIG & NETSH ?
@@ -224,6 +239,7 @@ timeout /t 5
 goto mdelete
 
 :delete
+<<<<<<< HEAD
 REM ========= Windows Update Cache =========
 net stop wuauserv
 del /S /F /Q "C:\Windows\SoftwareDistribution\Download\*"
@@ -253,6 +269,14 @@ REM ========= Prefetch =========
 del /S /F /Q "%WINDIR%\Prefetch\*"
 REM ========= SoftwareDistribution =========
 del /S /F /Q "%WINDIR%\SoftwareDistribution\*"
+=======
+REM ========= Logs =========
+forfiles /p %WINDIR%\logs /s /m *.* /d -7 /c "cmd /c del @
+REM ========= Prefetch =========
+del /q /f /s "%WINDIR%\Prefetch\*"
+REM ========= SoftwareDistribution =========
+del /s /q /f "C:\Windows\SoftwareDistribution\*"
+>>>>>>> 434f8bc89f323bf507964d7ffa01ef5d573ddc2a
 REM ========= Temp =========
 setlocal
 for /D %%i in ("C:\Users\*") do (
