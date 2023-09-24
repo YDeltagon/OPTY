@@ -1,3 +1,4 @@
+:: 2023-09-24 - Fix :                 Fix regprofil not work
 :: 2023-01-29 - Link :                Update link GitHub
 :: 2023-01-28 - standalone :          Like old, but standalone
 
@@ -77,9 +78,9 @@ echo.
 echo   0. Exit
 echo.
 set /p choice= Enter action:
-if "%choice%"=="1" goto optytomopti 
-if "%choice%"=="2" goto optytomreenable
-if "%choice%"=="3" goto optytomregprofil
+if "%choice%"=="1" goto mopti
+if "%choice%"=="2" goto mreenable
+if "%choice%"=="3" goto mregprofil
 if "%choice%"=="9" goto Clean_Opty_Curl
 if "%choice%"=="0" goto end
 if "%choice%"=="ns" goto nshutdown
@@ -92,20 +93,20 @@ timeout /t 5
 goto menu
 
 
-:optytomopti
+:mopti
 set AutoOpti_Shutdown=0
 curl -o "Opti.bat" -LJO %GitHubRawLink%Opti.bat
 call "Opti.bat"
 goto menu
 
 
-:optytomreenable
+:mreenable
 curl -o "ReEnable.bat" -LJO %GitHubRawLink%ReEnable.bat
 call "ReEnable.bat"
 goto menu
 
 
-:optytomregprofil
+:mregprofil
 curl -o "RegProfil.bat" -LJO %GitHubRawLink%RegProfil.bat
 call "RegProfil.bat"
 goto menu
