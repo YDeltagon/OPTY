@@ -56,6 +56,7 @@ reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\I
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces" /v "TcpDelAckTicks" /t REG_DWORD /d 00000001 /f
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "TdrLevel" /t REG_DWORD /d 00000002 /f
 powercfg /h on
+timeout /t 5
 goto regsc-vanilla
 
 :regprofil-gaming
@@ -74,6 +75,7 @@ reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\I
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces" /v "TcpDelAckTicks" /t REG_DWORD /d 00000000 /f
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "TdrLevel" /t REG_DWORD /d 00000000 /f
 powercfg /h off
+timeout /t 5
 goto regsc-gaming
 
 :regprofil-gamingapp
@@ -92,6 +94,7 @@ reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\I
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces" /v "TcpDelAckTicks" /t REG_DWORD /d 00000000 /f
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "TdrLevel" /t REG_DWORD /d 00000000 /f
 powercfg /h off
+timeout /t 5
 goto regsc-gaming
 
 :regprofil-server
@@ -110,6 +113,7 @@ reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\I
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces" /v "TcpDelAckTicks" /t REG_DWORD /d 00000000 /f
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "TdrLevel" /t REG_DWORD /d 00000000 /f
 powercfg /h off
+timeout /t 5
 goto regsc-gaming
 
 :regsc-gaming
@@ -117,6 +121,7 @@ sc config "WSearch" start= disabled
 sc config "SysMain" start= disabled
 sc config "WerSvc" start= disabled
 sc config "Spooler" start= disabled
+timeout /t 5
 goto menu
 
 :regsc-vanilla
@@ -124,4 +129,5 @@ sc config "WSearch" start= auto
 sc config "SysMain" start= auto
 sc config "WerSvc" start= auto
 sc config "Spooler" start= auto
+timeout /t 5
 goto menu

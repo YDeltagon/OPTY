@@ -123,7 +123,7 @@ if /i %autoclean% == 2 goto netdns
 
 :mnetdns
 cls
-echo Do you want to flushdns and ip reset - IPCONFIG & NETSH ?
+echo Do you want to flushdns and ip reset - IPCONFIG and NETSH ?
 set /p choice= Y (Yes) - N (No)
 if /i "%choice%"=="Y" goto netdns
 if /i "%choice%"=="N" goto mdism
