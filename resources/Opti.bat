@@ -221,6 +221,8 @@ timeout /t 5
 goto mdelete
 
 :delete
+REM ========= AMD Installer =========
+del /S /F /Q "C:\AMD"
 REM ========= Windows Update Cache =========
 net stop wuauserv
 del /S /F /Q "C:\Windows\SoftwareDistribution\Download\*"
