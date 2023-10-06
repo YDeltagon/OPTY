@@ -1,3 +1,4 @@
+:: 2023-10-06 - CleanMGR              Add /sageset for CleanMGR
 :: 2023-09-24 - add                   Add netdns(ipconfig & netsh) - Add del Prefetch & Logs - and some other del
 :: 2023-08-16 - fix                   Fix a bug if you choice the "manual", crash after chkdsk : fix
 :: 2023-07-12 - Remove Winget         Remove Winget > Use "winget install wingetui" on your powershell
@@ -206,6 +207,8 @@ goto mclean
 
 :clean
 echo Cleanmgr...
+cleanmgr /sageset:65535
+pause
 cleanmgr /sagerun:65535
 timeout /t 5
 
@@ -221,8 +224,6 @@ timeout /t 5
 goto mdelete
 
 :delete
-REM ========= AMD Installer =========
-del /S /F /Q "C:\AMD"
 REM ========= Windows Update Cache =========
 net stop wuauserv
 del /S /F /Q "C:\Windows\SoftwareDistribution\Download\*"
