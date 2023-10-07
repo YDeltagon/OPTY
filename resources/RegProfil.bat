@@ -32,7 +32,7 @@ echo.
 echo.
 set /p choice= Enter action:
 if "%choice%"=="1" goto regprofil-vanilla
-if "%choice%"=="2" goto regprofil-gaming
+if "%choice%"=="2" set app=0 & goto regprofil-gaming
 if "%choice%"=="3" set app=1 & goto regprofil-gaming
 if "%choice%"=="4" set app=2 & goto regprofil-gaming
 if "%choice%"=="m" goto menu
@@ -118,10 +118,10 @@ reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\GameDVR" /v "All
 reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v "AppCaptureEnabled" /t REG_DWORD /d 00000000 /f
 :: Power
 powercfg /h off
+timeout /t 5
+if /i %app% == 0 goto regsc-gaming
 if /i %app% == 1 goto regprofil-gamingapp
 if /i %app% == 2 goto regprofil-server
-timeout /t 5
-goto regsc-gaming
 
 :regprofil-gamingapp
 :: Multimedia
