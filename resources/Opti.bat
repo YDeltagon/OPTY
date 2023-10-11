@@ -122,6 +122,7 @@ echo Stop your background apps !
 pause
 if /i %autoclean% == 2 goto netdns
 
+
 :mnetdns
 cls
 echo Do you want to flushdns and ip reset - IPCONFIG and NETSH ?
@@ -138,6 +139,7 @@ ipconfig /flushdns
 netsh int ip reset
 if /i %autoclean% == 2 goto dism
 timeout /t 5
+
 
 :mdism
 cls
@@ -212,6 +214,7 @@ pause
 cleanmgr /sagerun:65535
 timeout /t 5
 
+
 :mdelete
 cls
 echo Do you want to delete temporary files - DEL ?
@@ -242,11 +245,6 @@ REM ========= AMD =========
 del /S /F /Q "%LOCALAPPDATA%\AMD\DxCache"
 REM ========= NVIDIA =========
 del /S /F /Q "%ProgramData%\NVIDIA Corporation\NV_Cache"
-REM ========= FNTCACHE =========
-del /S /F /Q "%WINDIR%\System32\FNTCACHE.DAT"
-REM ========= Web Cache =========
-del /S /F /Q "%LOCALAPPDATA%\Google\Chrome\User Data\Default\Cache"
-del /S /F /Q "%APPDATA%\Mozilla\Firefox\Profiles\*\cache2"
 REM ========= Logs =========
 del /S /F /Q "%WINDIR%\Logs\*
 REM ========= Prefetch =========
