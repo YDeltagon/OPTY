@@ -149,11 +149,11 @@ sc stop WerSvc
 sc stop Spooler
 sc stop DPS
 sc stop TabletInputService
-sc config "WSearch" start= disabled
-sc config "SysMain" start= disabled
-sc config "WerSvc" start= disabled
-sc config "Spooler" start= disabled
-sc config "DPS" start= disabled
+sc config "WSearch" start= demand
+sc config "SysMain" start= demand
+sc config "WerSvc" start= demand
+sc config "Spooler" start= demand
+sc config "DPS" start= demand
 sc config "TabletInputService" start= disabled
 pause
 goto mregpowercfg
