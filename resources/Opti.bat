@@ -1,3 +1,4 @@
+:: 2023-11-03 - Préstart              Add a "StartReady" before AutoOpti full, for stop some services
 :: 2023-10-06 - CleanMGR              Add /sageset for CleanMGR
 :: 2023-09-24 - add                   Add netdns(ipconfig & netsh) - Add del Prefetch & Logs - and some other del
 :: 2023-08-16 - fix                   Fix a bug if you choice the "manual", crash after chkdsk : fix
@@ -23,10 +24,10 @@ echo   1. Manual
 echo   2. Auto (lite)
 echo   3. Auto (Full)
 echo.
-echo   5. Create a shortcut for Auto (lite) + Shutdown
+echo   5. Create a desktop shortcut for Auto (lite) + Shutdown
 echo.
-echo  If you want reboot/stop after autoopti, type "r" or"s" after the number - 2r/3s/2s/3r
-echo  If you don't want reboot/stop, type nothing after the number - 2/3
+echo  If you want reboot/stop after autoopti, type "r" (reboot) or"s" (shutdown) after the number - 2r/s-3r/s
+echo  If you don't want reboot/stop, type nothing after the number - 2-3
 echo.
 echo.
 echo.
@@ -120,6 +121,19 @@ goto mdisenable
 cls
 echo Stop your background apps !
 pause
+if /i %autoclean% == 2 goto startready
+
+:startready
+net stop bits
+net stop wuauserv
+net stop msiserver
+net stop cryptsvc
+net stop appidsvc
+Ren %Systemroot%\SoftwareDistribution SoftwareDistribution.old
+Ren %Systemroot%\System32\catroot2 catroot2.old
+regsvr32.exe /s atl.dll
+regsvr32.exe /s urlmon.dll
+regsvr32.exe /s mshtml.dll
 if /i %autoclean% == 2 goto netdns
 
 
@@ -137,6 +151,8 @@ goto mnetdns
 :netdns
 ipconfig /flushdns
 netsh int ip reset
+netsh winsock reset
+netsh winsock reset proxy
 if /i %autoclean% == 2 goto dism
 timeout /t 5
 
@@ -153,9 +169,10 @@ timeout /t 5
 goto mdism
 
 :dism
-Dism /Online /Cleanup-Image /ScanHealth
-Dism /Online /Cleanup-Image /CheckHealth
-Dism /Online /Cleanup-Image /RestoreHealth
+dism /Online /Cleanup-image /ScanHealth
+dism /Online /Cleanup-image /CheckHealth
+dism /Online /Cleanup-image /RestoreHealth
+dism /Online /Cleanup-image /StartComponentCleanup
 if /i %autoclean% == 2 goto sfc
 timeout /t 5
 
@@ -281,7 +298,7 @@ goto mdefrag
 
 :defrag
 defrag /C /O /U /V /H
-if /i %autoclean% == 2 goto mshutdownreboot
+if /i %autoclean% == 2 goto endready
 timeout /t 5
 
 
@@ -298,8 +315,17 @@ goto mchkdsk
 
 :chkdsk
 CHKDSK /f /r
+if /i %autoclean% == 2 goto endready
 timeout /t 5
 
+:endready
+net start bits
+net start wuauserv
+net start msiserver
+net start cryptsvc
+net start appidsvc
+if /i %autoclean% == 2 goto mshutdownreboot
+timeout /t 5
 
 :mshutdownreboot
 cls
