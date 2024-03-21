@@ -1,3 +1,4 @@
+:: 2024-03-21 - Menu :                Only-NumLock
 :: 2023-11-03 - Préstart              Add a "StartReady" before AutoOpti full, for stop some services
 :: 2023-10-06 - CleanMGR              Add /sageset for CleanMGR
 :: 2023-09-24 - add                   Add netdns(ipconfig & netsh) - Add del Prefetch & Logs - and some other del
@@ -38,8 +39,8 @@ echo.
 echo.
 echo.
 echo.
-echo   M. Menu
-echo   0. Exit
+echo.
+echo   0. Menu
 echo.
 set /p choice= Enter action:
 if /i "%choice%"=="1" set autoclean=0 & set autoshutdownreboot=5 & goto mdisenable
@@ -50,8 +51,7 @@ if /i "%choice%"=="3s" set autoclean=2 & set autoshutdownreboot=1 & goto stopapp
 if /i "%choice%"=="2r" set autoclean=1 & set autoshutdownreboot=2 & goto wupdate
 if /i "%choice%"=="3r" set autoclean=2 & set autoshutdownreboot=2 & goto stopapps
 if /i "%choice%"=="5" goto CreateAutoOpti_Shutdown
-if /i "%choice%"=="M" goto menu
-if /i "%choice%"=="0" goto end
+if /i "%choice%"=="0" goto menu
 color 0C
 echo This is not a valid action
 timeout /t 5
@@ -80,9 +80,8 @@ echo  Choose a option to Disable/Enable :
 echo.
 echo  Add "+" or "-" in front of an action + activate or - deactivate it (example "-1" to deactivate animations)
 echo.
-echo   1. Animation
-echo   2. Window content while moving
-echo.
+echo   ani. Animation
+echo   mov. Window content while moving
 echo   fad. File access date updating
 echo   hbn. Hibernation mods
 echo.
@@ -95,21 +94,22 @@ echo.
 echo.
 echo.
 echo.
-echo   N. Next
-echo   M. Menu
-echo   0. Exit
+echo.
+echo   2. Next
+echo   0. Menu
+echo.
 echo.
 set /p choice= Enter action:
-if /i "%choice%"=="-1" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "0" /f & pause & goto mdisenable
-if /i "%choice%"=="+1" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "1" /f & pause & goto mdisenable
-if /i "%choice%"=="-2" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "0" /f & pause & goto mdisenable
-if /i "%choice%"=="+2" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "1" /f & pause & goto mdisenable
+if /i "%choice%"=="-ani" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "0" /f & pause & goto mdisenable
+if /i "%choice%"=="+ani" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "1" /f & pause & goto mdisenable
+if /i "%choice%"=="-mov" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "0" /f & pause & goto mdisenable
+if /i "%choice%"=="+mov" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "1" /f & pause & goto mdisenable
 if /i "%choice%"=="-fad" fsutil behavior set disablelastaccess 1 & pause & goto mdisenable
 if /i "%choice%"=="+fad" fsutil behavior set disablelastaccess 0 & pause & goto mdisenable
 if /i "%choice%"=="-hbn" powercfg.exe /hibernate off & echo Disable hibernate & pause & goto mdisenable
 if /i "%choice%"=="+hbn" powercfg.exe /hibernate on & echo Enable hibernate & pause & goto mdisenable
-if /i "%choice%"=="n" goto mnetdns
-if /i "%choice%"=="M" goto menu
+if /i "%choice%"=="2" goto mnetdns
+if /i "%choice%"=="0" goto menu
 cls
 color 0C
 echo This is not a valid action
@@ -140,10 +140,10 @@ if /i %autoclean% == 2 goto netdns
 :mnetdns
 cls
 echo Do you want to flushdns and ip reset - IPCONFIG and NETSH ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto netdns
-if /i "%choice%"=="N" goto mdism
-if /i "%choice%"=="M" goto menu
+set /p choice= 1 (Yes) - 2 (No)
+if /i "%choice%"=="1" goto netdns
+if /i "%choice%"=="2" goto mdism
+if /i "%choice%"=="0" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mnetdns
@@ -160,10 +160,10 @@ timeout /t 5
 :mdism
 cls
 echo Do you want to dismy the integrity of the Windows image and correct problems - DISM ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto dism
-if /i "%choice%"=="N" goto msfc
-if /i "%choice%"=="M" goto menu
+set /p choice= 1 (Yes) - 2 (No)
+if /i "%choice%"=="1" goto dism
+if /i "%choice%"=="2" goto msfc
+if /i "%choice%"=="0" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mdism
@@ -172,7 +172,7 @@ goto mdism
 dism /Online /Cleanup-image /ScanHealth
 dism /Online /Cleanup-image /CheckHealth
 dism /Online /Cleanup-image /RestoreHealth
-dism /Online /Cleanup-image /StartComponentCleanup
+dism /Online /Cleanup-image /StartComponentCleanup /ResetBase
 if /i %autoclean% == 2 goto sfc
 timeout /t 5
 
@@ -180,10 +180,10 @@ timeout /t 5
 :msfc
 cls
 echo Do you want to verify the integrity of system files and fix problems - SFC ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto sfc
-if /i "%choice%"=="N" goto mwupdate
-if /i "%choice%"=="M" goto menu
+set /p choice= 1 (Yes) - 2 (No)
+if /i "%choice%"=="1" goto sfc
+if /i "%choice%"=="2" goto mwupdate
+if /i "%choice%"=="0" goto menu
 echo This is not a valid action
 timeout /t 5
 goto msfc
@@ -197,10 +197,10 @@ timeout /t 5
 :mwupdate
 cls
 echo Do you want to update Windows - USOCLIENT ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto wupdate
-if /i "%choice%"=="N" goto mclean
-if /i "%choice%"=="M" goto menu
+set /p choice= 1 (Yes) - 2 (No)
+if /i "%choice%"=="1" goto wupdate
+if /i "%choice%"=="2" goto mclean
+if /i "%choice%"=="0" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mwupdate
@@ -216,10 +216,10 @@ timeout /t 5
 :mclean
 cls
 echo Execute clean disk - CLEANMGR ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto clean
-if /i "%choice%"=="N" goto mdelete
-if /i "%choice%"=="M" goto menu
+set /p choice= 1 (Yes) - 2 (No)
+if /i "%choice%"=="1" goto clean
+if /i "%choice%"=="2" goto mdelete
+if /i "%choice%"=="0" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mclean
@@ -235,10 +235,10 @@ timeout /t 5
 :mdelete
 cls
 echo Do you want to delete temporary files - DEL ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto delete
-if /i "%choice%"=="N" goto mdefrag
-if /i "%choice%"=="M" goto menu
+set /p choice= 1 (Yes) - 2 (No)
+if /i "%choice%"=="1" goto delete
+if /i "%choice%"=="2" goto mdefrag
+if /i "%choice%"=="0" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mdelete
@@ -288,10 +288,10 @@ timeout /t 5
 :mdefrag
 cls
 echo Do you want to defragment HDD or optimize SSD - DEFRAG ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto defrag
-if /i "%choice%"=="N" goto mchkdsk
-if /i "%choice%"=="M" goto menu
+set /p choice= 1 (Yes) - 2 (No)
+if /i "%choice%"=="1" goto defrag
+if /i "%choice%"=="2" goto mchkdsk
+if /i "%choice%"=="0" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mdefrag
@@ -305,10 +305,10 @@ timeout /t 5
 :mchkdsk
 cls
 echo Do you want to check the integrity of hard drives and fix any problems - CHKDSK ?
-set /p choice= Y (Yes) - N (No)
-if /i "%choice%"=="Y" goto chkdsk
-if /i "%choice%"=="N" goto mshutdownreboot
-if /i "%choice%"=="M" goto menu
+set /p choice= 1 (Yes) - 2 (No)
+if /i "%choice%"=="1" goto chkdsk
+if /i "%choice%"=="2" goto mshutdownreboot
+if /i "%choice%"=="0" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mchkdsk
@@ -337,11 +337,10 @@ if /i %autoshutdownreboot% == 5 goto mshutdownrebootfix
 
 :mshutdownrebootfix
 echo Do you want to restart/stop the computer?
-set /p choice= R (Reboot) - S (Stop) - N (No)
+set /p choice= R (Reboot) - S (Stop) - 0 (No)
 if /i "%choice%"=="R" goto reboot
 if /i "%choice%"=="S" goto shutdown
-if /i "%choice%"=="N" goto menu
-if /i "%choice%"=="M" goto menu
+if /i "%choice%"=="0" goto menu
 echo This is not a valid action
 timeout /t 5
 goto mshutdownreboot

@@ -1,3 +1,4 @@
+:: 2024-03-21 - Menu :                Only-NumLock
 :: 2023-09-24 - Fix :                 Fix regprofil not work
 :: 2023-01-29 - Link :                Update link GitHub
 :: 2023-01-28 - standalone :          Like old, but standalone
@@ -18,9 +19,9 @@ echo  WELCOME to OPTY by @YDeltagon (YannD)
 echo  User mode
 echo.
 echo.
-echo   a. Repair start/notif/search... (FixUserShellFolderPermissions)
+echo   1. Repair start/notif/search... (FixUserShellFolderPermissions)
 echo.
-echo   ns. Stop scheduled shutdown
+echo.
 echo.
 echo.
 echo.
@@ -38,11 +39,9 @@ echo.
 echo   0. Exit
 echo.
 set /p choice= Enter action:
-if "%choice%"=="a" goto FixUserShellFolderPermissions
+if "%choice%"=="1" goto FixUserShellFolderPermissions
 if "%choice%"=="0" goto end
-if "%choice%"=="ns" goto nshutdown
-if "%choice%"=="oup" goto update_opty
-if /i "%choice%"=="M" goto menu
+if "%choice%"=="." goto update_opty
 color 0C
 echo This is not a valid action
 timeout /t 5
@@ -63,7 +62,7 @@ echo   3. MENU - Register profil option
 echo.
 echo   9. Clean OPTY and delete all files
 echo.
-echo   ns. Stop scheduled shutdown
+echo.
 echo.
 echo.
 echo.
@@ -83,10 +82,8 @@ if "%choice%"=="2" goto mreenable
 if "%choice%"=="3" goto mregprofil
 if "%choice%"=="9" goto Clean_Opty_Curl
 if "%choice%"=="0" goto end
-if "%choice%"=="ns" goto nshutdown
-if "%choice%"=="oup" goto update_opty
-if "%choice%"=="perso" goto mupdate_perso
-if /i "%choice%"=="M" goto menu
+if "%choice%"=="." goto update_opty
+if "%choice%"=="-" goto mupdate_perso
 color 0C
 echo This is not a valid action
 timeout /t 5

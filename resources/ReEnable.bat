@@ -1,3 +1,4 @@
+:: 2024-03-21 - Menu :                Only-NumLock
 :: 2023-01-27 - standalone :          Like old, but standalone
 
 :mreenable
@@ -25,14 +26,14 @@ echo.
 echo.
 echo.
 echo.
-echo   M. Menu
-echo   0. Exit
+echo   0. Menu
+echo.
 echo.
 set /p choice= Enter action:
 if "%choice%"=="1" goto office_update
 if "%choice%"=="2" goto enable_google_update
 if "%choice%"=="3" goto enable_windows_update
-if "%choice%"=="m" goto menu
+if "%choice%"=="0" goto menu
 color 0C
 echo This is not a valid action
 timeout /t 5
