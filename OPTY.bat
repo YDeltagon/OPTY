@@ -1,10 +1,11 @@
+:: 2024-03-21  :                      Work if not connected, but local
 :: 2023-11-23  :                      Add Logs
 :: Change-logs :                      Found on Readme.md GitHub
 
 
 @echo off
 REM set variables
-set current_version=01.0.6
+set current_version=01.0.7
 set GitHubRawLink=https://raw.githubusercontent.com/YDeltagon/OPTY/master/resources/
 set GitHubLatestLink=https://github.com/YDeltagon/OPTY/releases/latest/download/
 REM Set variables for logs
@@ -91,10 +92,10 @@ echo  Ping check failed.
 echo   %loop_pinggh% failed
 echo   error : %errorlevel%
 echo.
-echo  This script need internet connection to work.
+echo  This script need internet connection to work properly.
 echo.
-timeout /t 15
-goto end
+timeout /t 10
+goto update_not_available
 
 
 REM Update OPTY.bat
