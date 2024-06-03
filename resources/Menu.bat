@@ -5,6 +5,7 @@
 
 REM if is a admin account, go to menuadmin, if is a user account, go to menuuser
 :menu
+echo %date% %time% : Menu.bat-admin %admin% >> %logs%
 if %admin%==1 goto menuadmin
 if %admin%==0 goto menuuser
 goto menu
@@ -39,6 +40,7 @@ echo.
 echo   0. Exit
 echo.
 set /p choice= Enter action:
+echo %date% %time% : Menu.bat-menuuser %choice% >> %logs%
 if "%choice%"=="1" goto FixUserShellFolderPermissions
 if "%choice%"=="0" goto end
 if "%choice%"=="." goto update_opty
@@ -77,6 +79,7 @@ echo.
 echo   0. Exit
 echo.
 set /p choice= Enter action:
+echo %date% %time% : Menu.bat-menuadmin %choice% >> %logs%
 if "%choice%"=="1" goto mopti
 if "%choice%"=="2" goto mreenable
 if "%choice%"=="3" goto mregprofil
@@ -91,6 +94,7 @@ goto menu
 
 
 :mopti
+echo %date% %time% : Menu.bat-mopti >> %logs%
 set AutoOpti_Shutdown=0
 curl -o "Opti.bat" -LJO %GitHubRawLink%Opti.bat
 call "Opti.bat"
@@ -98,18 +102,21 @@ goto menu
 
 
 :mreenable
+echo %date% %time% : Menu.bat-mreenable >> %logs%
 curl -o "ReEnable.bat" -LJO %GitHubRawLink%ReEnable.bat
 call "ReEnable.bat"
 goto menu
 
 
 :mregprofil
+echo %date% %time% : Menu.bat-mregprofil >> %logs%
 curl -o "RegProfil.bat" -LJO %GitHubRawLink%RegProfil.bat
 call "RegProfil.bat"
 goto menu
 
 
 :FixUserShellFolderPermissions
+echo %date% %time% : Menu.bat-FixUserShellFolderPermissions >> %logs%
 curl -o "FixUserShellFolderPermissions.ps1" -LJO %GitHubRawLink%FixUserShellFolderPermissions.ps1
 powershell.exe -ExecutionPolicy Bypass -File "%~dp0FixUserShellFolderPermissions.ps1"
 pause
@@ -117,6 +124,7 @@ goto menu
 
 
 :nshutdown
+echo %date% %time% : Menu.bat-nshutdown >> %logs%
 echo.
 shutdown /a
 echo.
@@ -127,11 +135,13 @@ goto menu
 
 
 :Clean_Opty_Curl
+echo %date% %time% : Menu.bat-Clean_Opty_Curl >> %logs%
 for /f "delims=" %f in ('dir /b /a-d ^| findstr /v "OPTY.bat"') do @del /f /q "%~dp0%f"
 goto end
 
 
 :mupdate_perso
+echo %date% %time% : Menu.bat-mupdate_perso >> %logs%
 curl -o "MIDIOFF.mp3" -LJO %GitHubRawLink%MIDIOFF.mp3
 curl -o "MIDION.mp3" -LJO %GitHubRawLink%MIDION.mp3
 pause

@@ -1,3 +1,4 @@
+:: 2024-06-03 - Menu :                Add logs
 :: 2024-03-21 - Menu :                Only-NumLock
 :: 2023-01-27 - standalone :          Like old, but standalone
 
@@ -30,6 +31,7 @@ echo   0. Menu
 echo.
 echo.
 set /p choice= Enter action:
+echo %date% %time% : ReEnable.bat-mreenable %choice% >> %logs%
 if "%choice%"=="1" goto office_update
 if "%choice%"=="2" goto enable_google_update
 if "%choice%"=="3" goto enable_windows_update
@@ -41,6 +43,7 @@ goto mreenable
 
 
 :office_update
+echo %date% %time% : ReEnable.bat-office_update >> %logs%
 cls
 echo Microsoft Office update...
 "C:\Program Files\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe" /update user
@@ -49,6 +52,7 @@ goto mreenable
 
 
 :enable_google_update
+echo %date% %time% : ReEnable.bat-enable_google_update >> %logs%
 cls
 taskkill /f /im chrome.exe
 cls
@@ -63,6 +67,7 @@ goto mreenable
 
 
 :enable_windows_update
+echo %date% %time% : ReEnable.bat-enable_windows_update >> %logs%
 cls
 Net stop wuauserv
 REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "DisableWindowsUpdateAccess" /t REG_DWORD /d 0 /f
