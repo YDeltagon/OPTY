@@ -79,7 +79,7 @@ echo.
 echo   0. Exit
 echo.
 set /p choice= Enter action:
-echo %date% %time% : Menu.bat-menuadmin %choice% >> %logs%
+echo %date% %time% : Menu.bat-menuadmin "%choice%" >> %logs%
 if "%choice%"=="1" goto mopti
 if "%choice%"=="2" goto mreenable
 if "%choice%"=="3" goto mregprofil

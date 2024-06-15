@@ -301,13 +301,13 @@ del /S /F /Q "%LOCALAPPDATA%\Google\Chrome\User Data\Default\Cache\*"
 del /S /F /Q "%LOCALAPPDATA%\Google\Chrome\User Data\Default\Code Cache\*"
 
 REM ========= Gaming Platforms Cache =========
-del /S /F /Q "%ProgramFiles(x86)%\Steam\appcache\*"
-del /S /F /Q "%ProgramFiles(x86)%\Steam\depotcache\*"
-del /S /F /Q "%ProgramFiles(x86)%\Ubisoft\Ubisoft Game Launcher\cache\*"
-del /S /F /Q "%ProgramData%\Battle.net\Cache\*"
-del /S /F /Q "%ProgramFiles(x86)%\Rockstar Games\Launcher\cache\*"
-del /S /F /Q "%ProgramData%\Origin\Cache\*"
-del /S /F /Q "%ProgramData%\GOG.com\Galaxy\cache\*"
+REM del /S /F /Q "%ProgramFiles(x86)%\Steam\appcache\*"
+REM del /S /F /Q "%ProgramFiles(x86)%\Steam\depotcache\*"
+REM del /S /F /Q "%ProgramFiles(x86)%\Ubisoft\Ubisoft Game Launcher\cache\*"
+REM del /S /F /Q "%ProgramData%\Battle.net\Cache\*"
+REM del /S /F /Q "%ProgramFiles(x86)%\Rockstar Games\Launcher\cache\*"
+REM del /S /F /Q "%ProgramData%\Origin\Cache\*"
+REM del /S /F /Q "%ProgramData%\GOG.com\Galaxy\cache\*"
 
 REM ========= Communication Tools Cache =========
 del /S /F /Q "%APPDATA%\discord\Cache\*"
