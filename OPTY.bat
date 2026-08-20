@@ -3068,6 +3068,13 @@ if /i not "%PROFVAL%"=="DELETE" call :regset "HKLM\SOFTWARE\Policies\Microsoft\W
 if /i not "%PROFVAL%"=="DELETE" call :regset "HKCU\Software\Policies\Microsoft\Windows\WindowsAI" "DisableAIDataAnalysis" REG_DWORD "%PROFVAL%" "Recall (user policy)"
 :sp_copilot
 
+:: --- The service behind Recall's indexing. A start type, not a policy, so
+:: --- it goes through :asksvc like the services section. PROFVAL is cleared
+:: --- first: on SKIP :asksvc returns without touching it, and a stale
+:: --- "disabled" from an earlier card would otherwise stop the service.
+set "PROFVAL="
+call :asksvc "db.wsaifabricsvc.disable" 1 "WSAIFabricSvc" "AI Fabric service (Recall indexing)"
+if /i "%PROFVAL%"=="disabled" sc stop WSAIFabricSvc >nul 2>&1
 :: --- Copilot.
 call :ask "db.copilot.off" 1
 if "%ANSWER%"=="SKIP" goto sp_consumer
