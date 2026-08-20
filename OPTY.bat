@@ -291,12 +291,15 @@ echo   Current version: v%current_version%
 echo   Latest version: v%latest_version%                      
 echo.                                                  
 echo.                                                  
-set "choice="
-set /p choice=Do you want to update ? Y (Yes) - N (No)
-echo %date% %time% : User choice for update = "%choice%"       >> %logs%
-if /i "%choice%"=="Y" goto update_found_and_accepted
-:: Anything else - including a bare Enter - means "no". Without this the code
-:: fell straight through into the update, so pressing Enter replaced the script.
+:: The decision is the file.self.update card. Its recommended answer is 5,
+:: whose column is SKIP, so a bare Enter still means "no" - the old prompt
+:: once fell straight through into the update, and pressing Enter replaced
+:: the script.
+call :ask "file.self.update" 5
+echo %date% %time% : User choice for update = "%ANSWER%"       >> %logs%
+if "%ANSWER%"=="SKIP" goto update_found_and_not_accepted
+call :profval "file.self.update" "%ANSWER%"
+if /i "%PROFVAL%"=="RUN" goto update_found_and_accepted
 goto update_found_and_not_accepted
 
 :update_found_and_accepted
@@ -3670,15 +3673,23 @@ if "%DSMODE%"=="1" (
     pause
     goto driverstore
 )
-call :L "%cWarn%" "This removes the packages above. Driver rollback for them is lost."
-set "choice="
-set /p choice= Type YES to confirm:
-if /i not "%choice%"=="YES" (
-    call :L "%cInfo%" "Cancelled - nothing removed."
-    del /f /q "%DSLIST%" >nul 2>&1
-    pause
-    goto driverstore
-)
+:: The confirmation is the card itself. AUTOPROFILE is cleared around the
+:: ask: losing driver rollback is destructive, and a destructive step is
+:: never auto-answered - the same promise :setup_profile makes.
+set "APSAVE=%AUTOPROFILE%"
+set "AUTOPROFILE="
+call :ask "driverstore.delete" 5
+set "AUTOPROFILE=%APSAVE%"
+set "APSAVE="
+if "%ANSWER%"=="SKIP" goto ds_cancel
+call :profval "driverstore.delete" "%ANSWER%"
+if /i "%PROFVAL%"=="DELETE" goto ds_confirmed
+:ds_cancel
+call :L "%cInfo%" "Cancelled - nothing removed."
+del /f /q "%DSLIST%" >nul 2>&1
+pause
+goto driverstore
+:ds_confirmed
 for /f "usebackq tokens=1" %%A in ("%DSLIST%") do call :ds_del "%%A"
 call :L "%cOK%" "Done. Packages still in use were refused and left in place."
 del /f /q "%DSLIST%" >nul 2>&1
