@@ -1592,7 +1592,7 @@ call :L "%cInfo%" "  starting the Office update client (it reports in its own wi
 
 call :L "%cOK%" "Updates and auto-maintenance section done."
 if not defined AUTOPROFILE pause
-goto msetup
+goto setup_next
 
 
 :mregprofil
@@ -2751,7 +2751,7 @@ call :L "%cInfo%" "  skipped  AMD ULPS - no AMD display adapter on this machine"
 
 call :L "%cOK%" "Display and GPU section done."
 if not defined AUTOPROFILE pause
-goto msetup
+goto setup_next
 
 :gpuvendor
 :: GPUAMD is set when an AMD display adapter is present. Gates the ULPS question,
@@ -2919,7 +2919,7 @@ call :L "%cOK%" "  FIXED    OPTY's Ultimate plan removed - back on Balanced"
 
 call :L "%cOK%" "System and gaming section done."
 if not defined AUTOPROFILE pause
-goto msetup
+goto setup_next
 
 :asknic
 :: %~1 card id  %~2 recommended answer  %~3 NDIS keyword  %~4 label
@@ -2959,7 +2959,25 @@ goto :eof
 echo.                                                           >> %logs%
 echo ====================== :SETUP_WIFI ======================== >> %logs%
 echo %date% %time% : Entered :setup_wifi label                    >> %logs%
+if not defined SETUPWALK goto swf_manual
+:: In the P walk the Wi-Fi card finds itself: the first adapter publishing
+:: RoamAggressiveness - a keyword only Wi-Fi drivers expose - is the one.
+:: A desktop with no Wi-Fi skips the section with the reason logged.
+set "NICCLS=HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
+set "NICKEY="
+set "NICDESC=the Wi-Fi adapter"
+for /f "delims=" %%K in ('reg query "%NICCLS%" 2^>nul') do (
+    reg query "%%K\Ndi\Params\RoamAggressiveness" >nul 2>&1 && (
+        if not defined NICKEY set "NICKEY=%%K"
+    )
+)
+if defined NICKEY goto swf_entry
+call :L "%cInfo%" "  no Wi-Fi adapter on this machine - Wi-Fi questions skipped"
+>>%logs% echo %date% %time% : setup walk skipped Wi-Fi - no adapter publishes RoamAggressiveness
+goto setup_next
+:swf_manual
 if not defined NICKEY goto swf_noadapter
+:swf_entry
 reg query "%NICKEY%\Ndi\Params\RoamAggressiveness" >nul 2>&1 || goto swf_notwifi
 cls
 call :banner "WI-FI ADAPTER"
@@ -2989,6 +3007,7 @@ if %NICWROTE% GTR 0 (
     call :L "%cInfo%" "  nothing was written - every value was already correct or skipped"
 )
 if not defined AUTOPROFILE pause
+if defined SETUPWALK goto setup_next
 goto mnetwork
 :swf_notwifi
 call :L "%cWarn%" "The selected adapter is not a Wi-Fi card - it does not publish"
@@ -3087,7 +3106,7 @@ net stop bits     >nul 2>&1
 
 call :L "%cOK%" "Services section done."
 if not defined AUTOPROFILE pause
-goto msetup
+goto setup_next
 
 :setup_privacy
 :: Privacy and debloat, driven entirely by the card tables.
@@ -3195,7 +3214,7 @@ if /i "%PROFVAL%"=="enabled"  call :taskset enable
 
 call :L "%cOK%" "Privacy section done."
 if not defined AUTOPROFILE pause
-goto msetup
+goto setup_next
 
 :taskset
 :: %~1 = enable or disable, applied to the seven telemetry and compatibility
@@ -3498,16 +3517,28 @@ for /f "delims=" %%K in ('reg query "%NICCLS%" 2^>nul') do (
         for /f "tokens=2,*" %%A in ('reg query "%%K" /v DriverDesc 2^>nul ^| findstr /i "DriverDesc"') do >>"%TEMP%\opty_nic_list.txt" echo %%K %%B
     )
 )
-if not exist "%TEMP%\opty_nic_list.txt" (
-    call :L "%cWarn%" "No adapter exposes tunable parameters - nothing to do."
-    pause
-    goto mnetwork
-)
+if exist "%TEMP%\opty_nic_list.txt" goto se_have
+call :L "%cWarn%" "No adapter exposes tunable parameters - nothing to do."
+if defined SETUPWALK goto setup_next
+pause
+goto mnetwork
+:se_have
 set /a NCOUNT=0
 for /f "usebackq tokens=1,*" %%A in ("%TEMP%\opty_nic_list.txt") do (
     set /a NCOUNT+=1
     call :nicecho "%%A" "%%B"
 )
+if not defined SETUPWALK goto se_pick
+:: In the P walk the adapter picks itself when the choice is forced; with
+:: several candidates there is nothing honest to guess, so the section is
+:: skipped and says where to answer these questions properly.
+if "%NCOUNT%"=="1" ( set "choice=1" & goto se_picked )
+call :L "%cWarn%" "  %NCOUNT% tunable adapters - the walk cannot guess which one to tune."
+call :L "%cInfo%" "  Open SETUP menu 1, option 3, to answer the Ethernet questions."
+>>%logs% echo %date% %time% : setup walk skipped Ethernet - %NCOUNT% adapters
+del /f /q "%TEMP%\opty_nic_list.txt" >nul 2>&1
+goto setup_next
+:se_pick
 echo(
 echo(   0. Back
 echo(
@@ -3515,6 +3546,7 @@ set "choice="
 set /p choice= Adapter number to tune:
 echo %date% %time% : setup_ethernet choice "%choice%"             >> %logs%
 if "%choice%"=="0" goto mnetwork
+:se_picked
 set "NICKEY="
 set "NICDESC="
 set /a NSEL=0
@@ -3621,11 +3653,13 @@ call :L "%cInfo%" "Real fix: SQM/fq_codel on the router at ~90%% of link rate, o
 call :L "%cInfo%" "qBittorrent upload to ~85-90%% of your measured upstream."
 del /f /q "%TEMP%\opty_nic_list.txt" >nul 2>&1
 if not defined AUTOPROFILE pause
+if defined SETUPWALK goto setup_next
 goto mnetwork
 :se_iswifi
 call :L "%cWarn%" "The selected adapter is a Wi-Fi card - it publishes RoamAggressiveness."
 call :L "%cWarn%" "These Ethernet keywords do not exist on it. Use option 5 instead."
 del /f /q "%TEMP%\opty_nic_list.txt" >nul 2>&1
+if defined SETUPWALK goto setup_next
 pause
 goto mnetwork
 
@@ -4565,8 +4599,37 @@ if "%choice%"=="4" set "AUTOPROFILE=4"
 if "%choice%"=="5" set "AUTOPROFILE=5"
 if not defined AUTOPROFILE goto setup_profile
 >>%logs% echo %date% %time% : AUTOPROFILE=%AUTOPROFILE% selected
-call :L "%cStep%" "Applying profile %AUTOPROFILE% to every SETUP question"
+call :L "%cStep%" "Applying profile %AUTOPROFILE% to every SETUP section"
+set "SETUPWALK=1"
+goto setup_walk
+
+:setup_walk
+:: The engine behind the README's two-minute promise. Arming AUTOPROFILE
+:: used to return to the menu and leave the user to open all six sections
+:: by hand: the fast answers existed, the walk did not. Every SETUP section
+:: now exits through :setup_next, which advances this counter; outside the
+:: walk :setup_next is exactly the old "goto msetup". The destructive rule
+:: is untouched - the walk only visits SETUP sections, and the cards that
+:: can lose data clear AUTOPROFILE around their own ask.
+if "%SETUPWALK%"=="1" goto setup_ethernet
+if "%SETUPWALK%"=="2" goto setup_wifi
+if "%SETUPWALK%"=="3" goto setup_gpu
+if "%SETUPWALK%"=="4" goto setup_system
+if "%SETUPWALK%"=="5" goto setup_privacy
+if "%SETUPWALK%"=="6" goto setup_services
+if "%SETUPWALK%"=="7" goto setup_updates
+set "SETUPWALK="
+echo(
+call :L "%cOK%" "Profile %AUTOPROFILE% applied to every SETUP section."
+call :ti "Each write above is one line - SET, FIXED or already correct. To change" "Chaque ecriture ci-dessus tient en une ligne - SET, FIXED ou deja bonne."
+call :ti "any single choice, its question is waiting in its section." "Pour modifier un choix, sa question vous attend dans sa section."
+pause
 goto msetup
+
+:setup_next
+if not defined SETUPWALK goto msetup
+set /a SETUPWALK+=1
+goto setup_walk
 
 :profval
 :: %~1 = card id, %~2 = answer digit 1-5 -> PROFVAL = the value to write.
