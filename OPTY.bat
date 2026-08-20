@@ -1922,6 +1922,10 @@ call :regset "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Manag
 
 call :L "%cInfo%" "System perf defaults: TRIM on, SysMain/Prefetch on, system-managed pagefile"
 fsutil behavior set disabledeletenotify 0 >nul
+fsutil behavior set disablelastaccess 2 >nul
+call :L "%cInfo%" "  written  NTFS last-access back to System Managed (disablelastaccess=2)"
+fsutil behavior set disable8dot3 2 >nul
+call :L "%cInfo%" "  written  8.3 short names back to the per-volume default (disable8dot3=2)"
 call :regset "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters" "EnablePrefetcher" REG_DWORD 3 "Prefetcher"
 :: Windows ships EnableSuperfetch ABSENT - SysMain owns that behaviour now.
 :: Creating it would be inventing a value the OS never had.
@@ -2729,6 +2733,42 @@ if not defined AUTOPROFILE pause
 call :askreg "reg.menuanimate" 5 "HKCU\Control Panel\Desktop" "MenuAnimate" REG_SZ "Menu animations"
 call :askreg "reg.dragfullwindows" 5 "HKCU\Control Panel\Desktop" "DragFullWindows" REG_SZ "Show window contents while dragging"
 
+:: --- Mouse pointer: acceleration, the truncated SmoothMouse curves an older
+:: --- OPTY wrote, and making the change live. All four values are REG_SZ
+:: --- strings - a DWORD write here is accepted by reg.exe and ignored by
+:: --- Windows. Defaults verified against HKEY_USERS\.DEFAULT, the profile
+:: --- Windows stamps onto a brand-new account.
+call :ask "mouse.accel.off" 5
+if "%ANSWER%"=="SKIP" goto ss_curves
+call :profval "mouse.accel.off" "%ANSWER%"
+if /i "%PROFVAL%"=="SKIP" ( call :L "%cInfo%" "  left alone  pointer acceleration (profile %ANSWER%)" & goto ss_curves )
+call :regset "HKCU\Control Panel\Mouse" "MouseSensitivity" REG_SZ 10 "Pointer speed (control panel midpoint)"
+if "%PROFVAL%"=="0" call :regset "HKCU\Control Panel\Mouse" "MouseSpeed" REG_SZ 0 "Pointer acceleration (0 = true 1:1)"
+if "%PROFVAL%"=="0" call :regset "HKCU\Control Panel\Mouse" "MouseThreshold1" REG_SZ 0 "Acceleration threshold 1"
+if "%PROFVAL%"=="0" call :regset "HKCU\Control Panel\Mouse" "MouseThreshold2" REG_SZ 0 "Acceleration threshold 2"
+if "%PROFVAL%"=="1" call :regset "HKCU\Control Panel\Mouse" "MouseSpeed" REG_SZ 1 "Pointer acceleration (1 = Windows default)"
+if "%PROFVAL%"=="1" call :regset "HKCU\Control Panel\Mouse" "MouseThreshold1" REG_SZ 6 "Acceleration threshold 1"
+if "%PROFVAL%"=="1" call :regset "HKCU\Control Panel\Mouse" "MouseThreshold2" REG_SZ 10 "Acceleration threshold 2"
+:ss_curves
+call :ask "mouse.smoothcurve.delete" 1
+if "%ANSWER%"=="SKIP" goto ss_mouselive
+call :profval "mouse.smoothcurve.delete" "%ANSWER%"
+if /i "%PROFVAL%"=="DELETE" call :mousecurve
+if /i not "%PROFVAL%"=="DELETE" call :L "%cInfo%" "  left alone  SmoothMouse curves (profile %ANSWER%)"
+:ss_mouselive
+call :ask "mouse.apply.live" 1
+if "%ANSWER%"=="SKIP" goto ss_console
+call :profval "mouse.apply.live" "%ANSWER%"
+if /i "%PROFVAL%"=="RUN" call :mouseapply
+if /i "%PROFVAL%"=="RUN" call :L "%cOK%" "  mouse changes are live - no logoff needed"
+if /i not "%PROFVAL%"=="RUN" call :L "%cInfo%" "  the mouse changes apply at your next logon"
+:ss_console
+
+:: --- VT colour sequences in classic conhost. Note that OPTY writes 1 here
+:: --- for its own UI at every start, so an answer of 5 (DELETE) holds only
+:: --- until the next OPTY run.
+call :askreg "reg.console.vt" 1 "HKCU\Console" "VirtualTerminalLevel" REG_DWORD "Console VT sequences"
+
 :: --- Game Mode.
 call :askreg "game.mode.on" 1 "HKCU\Software\Microsoft\GameBar" "AllowAutoGameMode" REG_DWORD "Game Mode"
 
@@ -2749,6 +2789,11 @@ call :profval "reg.gamedvr.enabled" "%ANSWER%"
 call :regset "HKCU\System\GameConfigStore" "GameDVR_Enabled" REG_DWORD "%PROFVAL%" "GameDVR capture"
 call :regset "HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR" "AppCaptureEnabled" REG_DWORD "%PROFVAL%" "GameDVR app capture"
 :ss_usb
+
+:: --- Store apps running in the background. The per-user toggle, never the
+:: --- HKLM AppPrivacy policy - that one is machine-scope, greys the Settings
+:: --- page out, and its default is the value being absent.
+call :askreg "background.apps.off" 5 "HKCU\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" "GlobalUserDisabled" REG_DWORD "Background apps (Store)"
 
 :: --- USB selective suspend. Gaming and server turn it off for peripheral
 :: --- responsiveness; office and laptop keep it, because on a laptop it is
@@ -2775,6 +2820,45 @@ call :pwrfix 75b0ae3f-bce0-45a7-8c89-c9611c25e100 0 "Max CPU frequency cap"
 call :pwrfix bc5038f7-23e0-4960-96da-33abaf5935ec 100 "Max processor state (AC)"
 call :pwrfix 5d76a2ca-e8c0-402f-a133-2158492d58ad 0 "CPU idle states"
 :ss_done
+
+:: --- Hibernation. GAMING and SERVER give up fast startup to reclaim the
+:: --- RAM-sized hiberfil.sys; OFFICE, LAPTOP and WINDOWS keep the default.
+call :ask "powercfg.hibernate" 5
+if "%ANSWER%"=="SKIP" goto ss_ult
+call :profval "powercfg.hibernate" "%ANSWER%"
+if /i "%PROFVAL%"=="on"  powercfg.exe /hibernate on
+if /i "%PROFVAL%"=="on"  call :L "%cOK%" "  hibernation on - fast startup available again"
+if /i "%PROFVAL%"=="off" powercfg.exe /hibernate off
+if /i "%PROFVAL%"=="off" call :L "%cOK%" "  hibernation off - hiberfil.sys removed"
+:ss_ult
+
+:: --- The hidden Ultimate Performance plan. Guarded by a FIXED destination
+:: --- GUID: -duplicatescheme mints a new random GUID every run, which is how
+:: --- this machine once collected three identical Ultimate plans. DELETE only
+:: --- ever removes the plan under OPTY's own GUID, never one the user made.
+call :ask "powercfg.ultimate.create" 3
+if "%ANSWER%"=="SKIP" goto ss_close
+call :profval "powercfg.ultimate.create" "%ANSWER%"
+if /i "%PROFVAL%"=="SKIP" ( call :L "%cInfo%" "  left alone  power plans (profile %ANSWER%)" & goto ss_close )
+set "ULTGUID=9f9d6f1a-0b7e-4c3a-9c8e-0a1b2c3d4e5f"
+set "HASULT="
+for /f "delims=" %%S in ('powercfg /list 2^>nul ^| findstr /i "%ULTGUID%"') do set "HASULT=1"
+if /i "%PROFVAL%"=="DELETE" goto ss_ultdel
+if defined HASULT ( call :L "%cInfo%" "  written  Ultimate Performance already exists - not duplicated again" & goto ss_ultact )
+powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 %ULTGUID% >nul 2>&1
+if errorlevel 1 ( call :L "%cWarn%" "  Ultimate Performance is not available on this build - keeping the current plan" & goto ss_close )
+call :L "%cOK%" "  SET      Ultimate Performance plan created"
+:ss_ultact
+if /i not "%PROFVAL%"=="ACTIVATE" goto ss_close
+powercfg /setactive %ULTGUID% >nul 2>&1
+call :L "%cOK%" "  Ultimate Performance is now the active plan"
+goto ss_close
+:ss_ultdel
+if not defined HASULT ( call :L "%cInfo%" "  already  no OPTY-created Ultimate plan to remove" & goto ss_close )
+powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e >nul 2>&1
+powercfg /delete %ULTGUID% >nul 2>&1
+call :L "%cOK%" "  FIXED    OPTY's Ultimate plan removed - back on Balanced"
+:ss_close
 
 call :L "%cOK%" "System and gaming section done."
 if not defined AUTOPROFILE pause
