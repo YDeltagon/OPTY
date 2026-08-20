@@ -584,18 +584,10 @@ echo.                                                           >> %logs%
 echo ====================== :MNETDNS ======================       >> %logs%
 echo.                                                           >> %logs%
 echo %date% %time% : Entered :mnetdns label                          >> %logs%
-cls
-echo Do you want to flush DNS and reset IP - IPCONFIG and NETSH?
-set "choice="
-set /p choice= 1 (Yes) - 2 (No)
-echo %date% %time% : Opti-mnetdns "%choice%"                              >> %logs%
-if /i "%choice%"=="1" goto netdns
-if /i "%choice%"=="2" goto mdism
-if /i "%choice%"=="0" goto menu
-echo This is not a valid action                                      
-echo %date% %time% : Invalid option in :mnetdns                          >> %logs%
-timeout /t 5
-goto mnetdns
+call :step "cl.dnscache.flush" "clean.netdns" "DNS FLUSH"
+if "%STEPYES%"=="REDRAW" goto mnetdns
+if defined STEPYES goto netdns
+goto mdism
 
 :netdns
 echo.                                                           >> %logs%
@@ -690,18 +682,10 @@ echo.                                                           >> %logs%
 echo ====================== :MWUPDATE ======================     >> %logs%
 echo.                                                           >> %logs%
 echo %date% %time% : Entered :mwupdate label                          >> %logs%
-cls
-echo Do you want to update Windows - USOCLIENT?
-set "choice="
-set /p choice= 1 (Yes) - 2 (No)
-echo %date% %time% : Opti-mwupdate "%choice%"                          >> %logs%
-if /i "%choice%"=="1" goto wupdate
-if /i "%choice%"=="2" goto mclean
-if /i "%choice%"=="0" goto menu
-echo This is not a valid action                                      
-echo %date% %time% : Invalid option in :mwupdate                        >> %logs%
-timeout /t 5
-goto mwupdate
+call :step "usoclient.scaninstall" "clean.wupdate" "WINDOWS UPDATE"
+if "%STEPYES%"=="REDRAW" goto mwupdate
+if defined STEPYES goto wupdate
+goto mclean
 
 :wupdate
 echo.                                                           >> %logs%
@@ -721,18 +705,10 @@ echo.                                                           >> %logs%
 echo ====================== :MCLEAN ======================       >> %logs%
 echo.                                                           >> %logs%
 echo %date% %time% : Entered :mclean label                            >> %logs%
-cls
-echo Execute clean disk - CLEANMGR?
-set "choice="
-set /p choice= 1 (Yes) - 2 (No)
-echo %date% %time% : Opti-mclean "%choice%"                            >> %logs%
-if /i "%choice%"=="1" goto clean
-if /i "%choice%"=="2" goto mdelete
-if /i "%choice%"=="0" goto menu
-echo This is not a valid action                                      
-echo %date% %time% : Invalid option in :mclean                            >> %logs%
-timeout /t 5
-goto mclean
+call :step "cleanmgr.sagerun64" "clean.compact" "DISK CLEANUP"
+if "%STEPYES%"=="REDRAW" goto mclean
+if defined STEPYES goto clean
+goto mcompact
 
 :clean
 echo.                                                           >> %logs%
@@ -814,6 +790,10 @@ goto clean_wait
 :clean_done
 call :L "%cOK%" "Disk Cleanup finished (profile 0064)"
 echo %date% %time% : cleanmgr /sagerun:64 completed in %CMW%s        >> %logs%
+:: Manual mode asks about the disk compaction separately (cl.vhdx.compact);
+:: the auto modes fall straight through as they always did. The 10-minute
+:: timeout path above still lands in :clean_wsl directly.
+if /i %autoclean% == 0 goto mcompact
 
 
 :clean_wsl
@@ -895,6 +875,16 @@ echo %date% %time% : WSL/Docker vhdx compaction done               >> %logs%
 
 if /i %autoclean% == 2 goto defrag
 timeout /t 5
+
+
+:mcompact
+echo.                                                           >> %logs%
+echo ====================== :MCOMPACT ======================     >> %logs%
+echo %date% %time% : Entered :mcompact label                          >> %logs%
+call :step "cl.vhdx.compact" "clean.compact" "WSL / DOCKER DISKS"
+if "%STEPYES%"=="REDRAW" goto mcompact
+if defined STEPYES goto clean_wsl
+goto mdelete
 
 
 :mdelete
@@ -1277,22 +1267,14 @@ echo.                                                           >> %logs%
 echo ====================== :MCHKDSK ======================       >> %logs%
 echo.                                                           >> %logs%
 echo %date% %time% : Entered :mchkdsk label                          >> %logs%
-cls
-echo Check drive integrity - CHKDSK?
-echo   1. Online scan (SSD-safe, no reboot)
-echo   2. Full /f /r (HDD only - locks the volume, schedules a reboot)
-echo   3. Skip
-set "choice="
-set /p choice= Enter action:
-echo %date% %time% : Opti-mchkdsk "%choice%"                            >> %logs%
-if /i "%choice%"=="1" goto chkdsk
-if /i "%choice%"=="2" goto chkdsk_full
-if /i "%choice%"=="3" goto mshutdownreboot
-if /i "%choice%"=="0" goto menu
-echo This is not a valid action                                      
-echo %date% %time% : Invalid option in :mchkdsk                          >> %logs%
-timeout /t 5
-goto mchkdsk
+call :step "chkdsk.online.scan" "clean.chkdsk" "CHKDSK ONLINE SCAN"
+if "%STEPYES%"=="REDRAW" goto mchkdsk
+if defined STEPYES goto chkdsk
+:mchkdsk_full
+call :step "chkdsk.full.repair" "clean.chkdsk" "CHKDSK FULL REPAIR"
+if "%STEPYES%"=="REDRAW" goto mchkdsk_full
+if defined STEPYES goto chkdsk_full
+goto mshutdownreboot
 
 :chkdsk
 echo.                                                           >> %logs%
@@ -3722,6 +3704,10 @@ echo.                                                           >> %logs%
 echo ====================== :CLEAN_OPTY_CURL ================= >> %logs%
 echo.                                                           >> %logs%
 echo %date% %time% : Entered :Clean_Opty_Curl label                >> %logs%
+:coc_ask
+call :step "cl.optylogs.prune" "clean.optyprune" "OPTY LOGS"
+if "%STEPYES%"=="REDRAW" goto coc_ask
+if not defined STEPYES goto mmaint
 :: Delete by PATTERN, never by exclusion.
 :: This used to list every file in the folder and delete all but OPTY.bat and
 :: OPTY_rollback.bat, while the menu entry beside it said "old logs and
