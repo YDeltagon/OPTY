@@ -2843,7 +2843,7 @@ echo(
 if %NICWROTE% GTR 0 (
     call :L "%cOK%" "  %NICWROTE% keyword(s) written, %NICSKIP% refused or absent"
     call :L "%cWarn%" "  The adapter must be restarted before these take effect."
-    call :nicrestart
+    call :nicrestart "%NICKEY%"
 ) else (
     call :L "%cInfo%" "  nothing was written - every value was already correct or skipped"
 )
@@ -3156,7 +3156,7 @@ call :banner "NETWORK"
 echo(
 echo(     %cVal%1.%cR%  Diagnose        %cInfo%what differs from your driver's defaults%cR%
 echo(     %cVal%2.%cR%  Full report     %cInfo%every setting + limits -^> %OPTY_HOME_D%%cR%
-echo(     %cVal%3.%cR%  Apply profile   %cInfo%one sane profile, clamped to YOUR driver limits%cR%
+echo(     %cVal%3.%cR%  Ethernet settings %cInfo%per-card questions, values clamped to YOUR driver%cR%
 echo(     %cVal%4.%cR%  Restore         %cInfo%back to the driver's own factory defaults%cR%
 echo(
 echo(     %cVal%5.%cR%  Wi-Fi settings  %cInfo%roaming, power save, band and channel width%cR%
@@ -3169,7 +3169,7 @@ set /p choice= Enter action:
 echo %date% %time% : mnetwork "%choice%"                          >> %logs%
 if "%choice%"=="1" goto net_diag
 if "%choice%"=="2" goto netinfo_report
-if "%choice%"=="3" (call :restore_point & goto net_apply)
+if "%choice%"=="3" (call :restore_point & goto setup_ethernet)
 if "%choice%"=="4" (call :restore_point & goto net_restore)
 if "%choice%"=="5" (call :restore_point & goto setup_wifi)
 if "%choice%"=="0" goto msetup
@@ -3310,25 +3310,36 @@ timeout /t 3 >nul
 goto mrestore
 
 
-:net_apply
-:: Counters, read at the end. :nicset increments NICWROTE on a real write and
-:: NICSKIP on a keyword this driver does not expose. Without them the profile
-:: could not tell "applied 17 settings" from "matched none of them" - and on
-:: a Wi-Fi adapter it is always the second, because the keyword sets are
-:: disjoint: the AX210 exposes 22 keywords and shares none with this list.
+:setup_ethernet
+:: The Ethernet questions - the per-card replacement for :net_apply.
+::
+:: :net_apply forced seventeen keyword writes and a three-way sub-profile the
+:: moment an adapter was picked. Six of those settings carry different values
+:: across the five profile columns, which by this file's own rule makes them
+:: preferences - and a preference is asked, never forced. What every profile
+:: agrees on (the TCP globals, the Dnscache start type) is re-asserted as a
+:: repair first, without a question, because a question with one possible
+:: answer is noise dressed up as choice.
+::
+:: Two deliberate removals:
+::   - NetworkThrottlingIndex stays with :setup_system and its card
+::     mmcss.network.throttling. It was WRITTEN here and ASKED there - one
+::     value, two owners, and whichever ran last won. One card, one question.
+::   - EEE is not written any more. All five columns of net.nic.eee.off say
+::     SKIP: it is a link-stability fix for a symptom you have to actually
+::     have, not a default. The old forced 0 was the monolith this replaces.
 set "NICWROTE=0"
 set "NICSKIP=0"
 echo.                                                           >> %logs%
-echo ====================== :NET_APPLY ======================== >> %logs%
-echo %date% %time% : Entered :net_apply label                    >> %logs%
+echo ====================== :SETUP_ETHERNET =================== >> %logs%
+echo %date% %time% : Entered :setup_ethernet label               >> %logs%
 color 0B
 cls
-call :L "%cStep%" "NETWORK - apply sane adapter defaults"
+call :banner "ETHERNET ADAPTER"
 echo(
-echo(  %cInfo%There is no Gaming / Streaming / Torrent split: game traffic is small%cR%
-echo(  %cInfo%UDP that never touches LSO, RSC or jumbo frames, and streaming and%cR%
-echo(  %cInfo%torrenting want the same offloads on and the same buffers raised.%cR%
-echo(  %cInfo%One profile, values read from YOUR driver's own limits.%cR%
+call :ti "One question per setting. Every value is written as REG_SZ and clamped" "Une question par reglage. Chaque valeur est ecrite en REG_SZ et bornee"
+call :ti "to what YOUR driver enumerates - never a number invented for another" "a ce que VOTRE pilote enumere - jamais un chiffre invente pour une autre"
+call :ti "chipset. A keyword this driver does not expose is skipped and said so." "puce. Un mot-cle que ce pilote n expose pas est passe et annonce."
 echo(
 
 :: --- enumerate adapters that actually expose tunable parameters ---
@@ -3354,7 +3365,7 @@ echo(   0. Back
 echo(
 set "choice="
 set /p choice= Adapter number to tune:
-echo %date% %time% : net_apply choice "%choice%"                  >> %logs%
+echo %date% %time% : setup_ethernet choice "%choice%"             >> %logs%
 if "%choice%"=="0" goto mnetwork
 set "NICKEY="
 set "NICDESC="
@@ -3366,124 +3377,106 @@ for /f "usebackq tokens=1,*" %%A in ("%TEMP%\opty_nic_list.txt") do (
 if not defined NICKEY (
     call :L "%cErr%" "Invalid selection."
     timeout /t 3 >nul
-    goto net_apply
+    goto setup_ethernet
 )
+:: A Wi-Fi card exposes a disjoint keyword set: every Ethernet question below
+:: would render its full card, then report the keyword absent. Route it to
+:: the questions that actually exist on that hardware instead.
+reg query "%NICKEY%\Ndi\Params\RoamAggressiveness" >nul 2>&1 && goto se_iswifi
 
 cls
-call :L "%cStep%" "Applying to: %NICDESC%"
+call :L "%cStep%" "Questions for: %NICDESC%"
 echo(
-call :L "%cInfo%" "All NDIS keywords are written as REG_SZ - a REG_DWORD write is"
-call :L "%cInfo%" "silently ignored by the driver, which is how most .bat 'tweaks' do nothing."
-echo(
-call :L "%cInfo%" "Re-asserting adaptive interrupt moderation (lowest CPU for the same latency)"
-call :nicset "%NICKEY%" "*InterruptModeration" "1"
-call :nicset "%NICKEY%" "ITR" "65535"
-
-call :L "%cInfo%" "Re-asserting offloads ON (they never touch small UDP game packets)"
-call :nicset "%NICKEY%" "*LsoV2IPv4" "1"
-call :nicset "%NICKEY%" "*LsoV2IPv6" "1"
-call :nicset "%NICKEY%" "*TCPChecksumOffloadIPv4" "3"
-call :nicset "%NICKEY%" "*TCPChecksumOffloadIPv6" "3"
-call :nicset "%NICKEY%" "*UDPChecksumOffloadIPv4" "3"
-call :nicset "%NICKEY%" "*UDPChecksumOffloadIPv6" "3"
-call :nicset "%NICKEY%" "*IPChecksumOffloadIPv4" "3"
-
-call :L "%cInfo%" "Receive Side Scaling on, queues capped to what the driver enumerates"
-call :nicset "%NICKEY%" "*RSS" "1"
-call :nicenummax "%NICKEY%" "*NumRssQueues"
-if defined NENUMMAX call :nicset "%NICKEY%" "*NumRssQueues" "%NENUMMAX%"
-
-call :L "%cInfo%" "Jumbo frames off (they fragment on any 1500-MTU internet path)"
-call :nicset "%NICKEY%" "*JumboPacket" "1514"
-
-call :L "%cInfo%" "Buffer headroom - requested 1024, clamped to the driver max and step"
-call :nicset "%NICKEY%" "*ReceiveBuffers" "1024"
-call :nicset "%NICKEY%" "*TransmitBuffers" "1024"
-
-call :L "%cInfo%" "Energy Efficient Ethernet off (link stability, not a ping fix)"
-call :nicset "%NICKEY%" "EEELinkAdvertisement" "0"
-call :nicset "%NICKEY%" "*EEE" "0"
-call :nicset "%NICKEY%" "EnableGreenEthernet" "0"
-call :nicset "%NICKEY%" "AdvancedEEE" "0"
-
-echo(
-call :rule
-echo(  %cT%Usage profile%cR%
-echo(  %cInfo%Everything above is identical for gaming, streaming and torrenting -%cR%
-echo(  %cInfo%game traffic is small UDP that never touches LSO, RSC or jumbo frames.%cR%
-echo(  %cInfo%Only TWO settings genuinely differ, and both are conditional:%cR%
-echo(
-echo(     %cVal%1.%cR%  Balanced       %cInfo%Windows defaults for both - recommended%cR%
-echo(     %cVal%2.%cR%  Low latency    %cInfo%Flow Control off: avoids a PAUSE frame stalling%cR%
-echo(                    %cInfo%your upload up to 33.6 ms - but only if a switch on%cR%
-echo(                    %cInfo%your LAN actually sends them. Costs dropped packets%cR%
-echo(                    %cInfo%instead of a brief pause under saturation.%cR%
-echo(     %cVal%3.%cR%  Throughput     %cInfo%Lifts the MMCSS network cap (~120 Mbit/s) that%cR%
-echo(                    %cInfo%applies ONLY while audio is playing. Costs the%cR%
-echo(                    %cInfo%protection that cap exists for: network DPC work can%cR%
-echo(                    %cInfo%steal time from audio threads.%cR%
-echo(
-set "choice="
-set /p choice= Profile (1/2/3):
-echo %date% %time% : net profile "%choice%"                        >> %logs%
-if "%choice%"=="2" goto net_prof_lat
-if "%choice%"=="3" goto net_prof_thr
-call :L "%cInfo%" "Balanced - Flow Control and the MMCSS cap left at their defaults"
-call :nicset "%NICKEY%" "*FlowControl" "3"
-call :regset "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NetworkThrottlingIndex" REG_DWORD 10 "NetworkThrottlingIndex"
-
-:: Say what happened. A profile that matched nothing is not a profile that
-:: was applied, and printing a success either way is the exact failure this
-:: file exists to eliminate.
-if %NICWROTE% GTR 0 (
-    call :L "%cOK%" "  %NICWROTE% keyword(s) written, %NICSKIP% not supported by this driver"
-) else (
-    call :L "%cErr%" "  NOTHING was written - none of these keywords exist on this adapter"
-    call :L "%cWarn%" "  This profile targets Ethernet keywords. A Wi-Fi card exposes a"
-    call :L "%cWarn%" "  completely different set - roaming, MIMO power save, band choice -"
-    call :L "%cWarn%" "  and none of them overlap. Use the Wi-Fi questions in SETUP instead."
-    >>%logs% echo %date% %time% : net_apply matched 0 keywords on this adapter ^(%NICSKIP% skipped^)
-)
-
-goto net_prof_done
-
-:net_prof_lat
-call :L "%cWarn%" "Low latency - Flow Control off"
-call :nicset "%NICKEY%" "*FlowControl" "0"
-:: Deliberately no automatic "did this help" check: the only honest signal is the
-:: adapter's own "Pause Frames Received" counter, which this driver does not
-:: expose through any scriptable interface. Saying it changed nothing would be
-:: as much a guess as saying it helped.
-call :L "%cInfo%" "  This only does something if a switch on your LAN sends PAUSE frames."
-call :L "%cInfo%" "  If none does, the measured effect is exactly zero."
-call :regset "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NetworkThrottlingIndex" REG_DWORD 10 "NetworkThrottlingIndex"
-goto net_prof_done
-
-:net_prof_thr
-call :L "%cWarn%" "Throughput - lifting the MMCSS network cap"
-call :nicset "%NICKEY%" "*FlowControl" "3"
-call :regset "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NetworkThrottlingIndex" REG_DWORD 4294967295 "NetworkThrottlingIndex"
-call :L "%cInfo%" "  Honest A/B: run a large download while playing audio, before and after."
-:net_prof_done
-
-echo(
-call :L "%cInfo%" "Re-asserting good TCP globals"
+:: --- what every profile agrees on, re-asserted first, never asked ---
+call :L "%cStep%" "Re-asserting what all five profiles agree on"
 netsh int tcp set global autotuninglevel=normal >nul
 netsh int tcp set heuristics disabled >nul
 netsh int tcp set global rss=enabled >nul
+call :L "%cOK%" "  written  TCP globals (autotuning normal, heuristics off, RSS on)"
+call :svcset "Dnscache" auto 2 "DNS Client (resolver cache)"
+echo(
+
+:: --- the six per-adapter preferences, one card each ---
+call :ask "net.nic.itr.adaptive" 1
+if "%ANSWER%"=="SKIP" ( call :L "%cInfo%" "  skipped  interrupt moderation" & goto se_offloads )
+call :profval "net.nic.itr.adaptive" "%ANSWER%"
+if /i "%PROFVAL%"=="SKIP" ( call :L "%cInfo%" "  left alone  interrupt moderation (profile %ANSWER% keeps the driver value)" & goto se_offloads )
+set "NV1=" & set "NV2="
+for /f "tokens=1,2 delims=/" %%a in ("%PROFVAL%") do set "NV1=%%a" & set "NV2=%%b"
+call :nicset "%NICKEY%" "*InterruptModeration" "%NV1%"
+call :nicset "%NICKEY%" "ITR" "%NV2%"
+:se_offloads
+
+call :ask "net.nic.offloads.apply" 1
+if "%ANSWER%"=="SKIP" ( call :L "%cInfo%" "  skipped  hardware offloads" & goto se_rss )
+call :profval "net.nic.offloads.apply" "%ANSWER%"
+if /i "%PROFVAL%"=="SKIP" ( call :L "%cInfo%" "  left alone  hardware offloads (profile %ANSWER% keeps the driver value)" & goto se_rss )
+set "NV1=" & set "NV2="
+for /f "tokens=1,2 delims=/" %%a in ("%PROFVAL%") do set "NV1=%%a" & set "NV2=%%b"
+call :nicset "%NICKEY%" "*LsoV2IPv4" "%NV1%"
+call :nicset "%NICKEY%" "*LsoV2IPv6" "%NV1%"
+call :nicset "%NICKEY%" "*TCPChecksumOffloadIPv4" "%NV2%"
+call :nicset "%NICKEY%" "*TCPChecksumOffloadIPv6" "%NV2%"
+call :nicset "%NICKEY%" "*UDPChecksumOffloadIPv4" "%NV2%"
+call :nicset "%NICKEY%" "*UDPChecksumOffloadIPv6" "%NV2%"
+call :nicset "%NICKEY%" "*IPChecksumOffloadIPv4" "%NV2%"
+:se_rss
+
+call :ask "net.nic.rss.queues" 1
+if "%ANSWER%"=="SKIP" ( call :L "%cInfo%" "  skipped  Receive Side Scaling" & goto se_jumbo )
+call :profval "net.nic.rss.queues" "%ANSWER%"
+if /i "%PROFVAL%"=="SKIP" ( call :L "%cInfo%" "  left alone  Receive Side Scaling (profile %ANSWER% keeps the driver value)" & goto se_jumbo )
+set "NV1=" & set "NV2="
+for /f "tokens=1,2 delims=/" %%a in ("%PROFVAL%") do set "NV1=%%a" & set "NV2=%%b"
+call :nicset "%NICKEY%" "*RSS" "%NV1%"
+:: ENUMMAX is not a number to write - it means "whatever this driver's own
+:: Enum tops out at". The I211 enumerates 1 and 2 queues; asking it for 8 is
+:: a myth, and :nicset would refuse the value anyway.
+call :nicenummax "%NICKEY%" "*NumRssQueues"
+if defined NENUMMAX call :nicset "%NICKEY%" "*NumRssQueues" "%NENUMMAX%"
+if not defined NENUMMAX call :L "%cInfo%" "  absent   *NumRssQueues (this driver does not enumerate queue counts)"
+:se_jumbo
+
+call :asknic "net.nic.jumbo.apply" 1 "*JumboPacket" "Jumbo frames (1514 = standard, off)"
+
+call :ask "net.nic.buffers.raise" 1
+if "%ANSWER%"=="SKIP" ( call :L "%cInfo%" "  skipped  NIC buffers" & goto se_flow )
+call :profval "net.nic.buffers.raise" "%ANSWER%"
+if /i "%PROFVAL%"=="SKIP" ( call :L "%cInfo%" "  left alone  NIC buffers (profile %ANSWER% keeps the driver default)" & goto se_flow )
+call :nicset "%NICKEY%" "*ReceiveBuffers" "%PROFVAL%"
+call :nicset "%NICKEY%" "*TransmitBuffers" "%PROFVAL%"
+:se_flow
+
+call :asknic "net.nic.flowcontrol.profile" 1 "*FlowControl" "Ethernet flow control (802.3x PAUSE)"
 
 echo(
-call :L "%cWarn%" "The adapter must restart for these to take effect (link drops 2-4 s)."
-set "choice="
-set /p choice= Restart the adapter now? 1 (Yes) - 0 (No, on next reboot):
-if not "%choice%"=="1" goto net_apply_done
+if %NICWROTE% GTR 0 (
+    call :L "%cOK%" "  %NICWROTE% keyword(s) written, %NICSKIP% refused or absent"
+) else (
+    call :L "%cInfo%" "  nothing was written - every value was skipped, absent or refused"
+)
+
+:: --- the restart is its own card: NDIS only re-reads keywords when the
+:: --- device initialises, and SERVER deliberately answers SKIP because a
+:: --- 2-4 s link drop on a machine serving clients is not free.
+if %NICWROTE%==0 goto se_done
+call :ask "net.nic.restart.profile" 1
+if "%ANSWER%"=="SKIP" ( call :L "%cInfo%" "  the settings go live at the next reboot" & goto se_done )
+call :profval "net.nic.restart.profile" "%ANSWER%"
+if /i not "%PROFVAL%"=="RESTART" ( call :L "%cInfo%" "  left for the next reboot (profile %ANSWER% does not drop the link)" & goto se_done )
 call :nicrestart "%NICKEY%"
-:net_apply_done
+:se_done
 echo(
-call :L "%cOK%" "Network profile applied."
+call :L "%cOK%" "Ethernet section done."
 call :L "%cInfo%" "Torrent + gaming lag is upstream queue saturation, not a NIC setting."
 call :L "%cInfo%" "Real fix: SQM/fq_codel on the router at ~90%% of link rate, or cap"
 call :L "%cInfo%" "qBittorrent upload to ~85-90%% of your measured upstream."
+del /f /q "%TEMP%\opty_nic_list.txt" >nul 2>&1
+if not defined AUTOPROFILE pause
+goto mnetwork
+:se_iswifi
+call :L "%cWarn%" "The selected adapter is a Wi-Fi card - it publishes RoamAggressiveness."
+call :L "%cWarn%" "These Ethernet keywords do not exist on it. Use option 5 instead."
 del /f /q "%TEMP%\opty_nic_list.txt" >nul 2>&1
 pause
 goto mnetwork
@@ -3534,8 +3527,16 @@ if not defined NICKEY (
 cls
 call :L "%cStep%" "Restoring factory defaults on: %NICDESC%"
 echo(
+:: The restore itself is a card. Its columns are SKIP for the four working
+:: profiles and APPLY only on WINDOWS: putting the driver's own defaults back
+:: IS the "shipped values, nothing else" move. The menu choice brought the
+:: user here; the card is what explains the fourteen keywords and confirms.
+call :ask "net.nic.restore.driver14" 5
+if "%ANSWER%"=="SKIP" goto nr_tcp
+call :profval "net.nic.restore.driver14" "%ANSWER%"
+if /i not "%PROFVAL%"=="APPLY" ( call :L "%cInfo%" "  left alone - profile %ANSWER% keeps the current NIC settings" & goto nr_tcp )
 :: every tunable keyword carries its own factory value in Ndi\Params\<kw>\default
-:: Restore ONLY the keywords :net_apply actually writes. The unfiltered query
+:: Restore ONLY the keywords :setup_ethernet can write. The unfiltered query
 :: returned all 31 the driver exposes, so "Restore" also re-enabled Wake-on-LAN,
 :: 802.3az EEE and ReduceSpeedOnPowerDown - settings the user had deliberately
 :: turned off and that OPTY never touched.
@@ -3543,10 +3544,17 @@ echo(
 :: treated as a filesystem glob and silently drop every *-prefixed keyword.
 for /f "delims=" %%P in ('reg query "%NICKEY%\Ndi\Params" 2^>nul ^| findstr /i /e /c:"\*InterruptModeration" /c:"\ITR" /c:"\*LsoV2IPv4" /c:"\*LsoV2IPv6" /c:"\*TCPChecksumOffloadIPv4" /c:"\*TCPChecksumOffloadIPv6" /c:"\*UDPChecksumOffloadIPv4" /c:"\*UDPChecksumOffloadIPv6" /c:"\*IPChecksumOffloadIPv4" /c:"\*RSS" /c:"\*NumRssQueues" /c:"\*JumboPacket" /c:"\*ReceiveBuffers" /c:"\*TransmitBuffers"') do call :nicdefault "%NICKEY%" "%%P"
 echo(
+:nr_tcp
+echo(
+call :ask "net.tcp.globals.restore.keyword" 5
+if "%ANSWER%"=="SKIP" goto nr_restart
+call :profval "net.tcp.globals.restore.keyword" "%ANSWER%"
+if /i not "%PROFVAL%"=="APPLY" ( call :L "%cInfo%" "  left alone - the TCP globals stay as they are" & goto nr_restart )
 call :L "%cInfo%" "Restoring TCP globals"
 netsh int tcp set global autotuninglevel=normal >nul
 netsh int tcp set heuristics default >nul
 netsh int tcp set global rss=default >nul
+:nr_restart
 echo(
 set "choice="
 set /p choice= Restart the adapter now? 1 (Yes) - 0 (No, on next reboot):
