@@ -916,6 +916,12 @@ call :L "%cStep%" "CLEANUP - deleting temp files, caches, logs and dumps..."
 :: --- It is a setting, not a cleanup: forcing it on at every CLEAN run was
 :: --- the monolith pattern the card rework removes. The Downloads safety
 :: --- pins are re-asserted there as repairs (storagesense.downloads.off).
+:dl_wu
+if not "%autoclean%"=="0" goto dl_wu_go
+call :step "cl.wupdate.download" "clean.delete" "WINDOWS UPDATE CACHE"
+if "%STEPYES%"=="REDRAW" goto dl_wu
+if not defined STEPYES goto dl_drives
+:dl_wu_go
 :: --- Windows Update download cache ---
 echo %date% %time% : Stopping wuauserv service                       >> %logs%
 net stop wuauserv >nul 2>&1
@@ -924,6 +930,12 @@ del /S /F /Q "C:\Windows\SoftwareDistribution\Download\*"
 echo %date% %time% : Restarting wuauserv service                      >> %logs%
 net start wuauserv >nul 2>&1
 
+:dl_drives
+if not "%autoclean%"=="0" goto dl_drives_go
+call :step "cl.drivesweep.fixed" "clean.delete" "PER-DRIVE JUNK"
+if "%STEPYES%"=="REDRAW" goto dl_drives
+if not defined STEPYES goto dl_wtemp
+:dl_drives_go
 :: --- Per-drive junk, on every FIXED drive ---
 :: Windows drops DeliveryOptimization / WUDownloadCache and upgrade staging
 :: folders on whichever volume it picked, not always C:. Network drives are
@@ -934,10 +946,22 @@ call :fixeddrives
 for %%D in (%FIXEDLIST%) do call :drivesweep %%D
 echo %date% %time% : Fixed drives swept:%FIXEDLIST%                  >> %logs%
 
+:dl_wtemp
+if not "%autoclean%"=="0" goto dl_wtemp_go
+call :step "cl.temp.windir" "clean.delete" "SYSTEM TEMP"
+if "%STEPYES%"=="REDRAW" goto dl_wtemp
+if not defined STEPYES goto dl_utemp
+:dl_wtemp_go
 :: --- Temp (system + all users Local\Temp as in your model) ---
 echo %date% %time% : Deleting Windows Temp folder                     >> %logs%
 del /S /F /Q "%WINDIR%\Temp\*"
 
+:dl_utemp
+if not "%autoclean%"=="0" goto dl_utemp_go
+call :step "cl.temp.userall" "clean.delete" "USER TEMP"
+if "%STEPYES%"=="REDRAW" goto dl_utemp
+if not defined STEPYES goto dl_shader
+:dl_utemp_go
 echo %date% %time% : Deleting user Temp files                         >> %logs%
 setlocal
 for /D %%i in ("C:\Users\*") do (
@@ -946,6 +970,12 @@ for /D %%i in ("C:\Users\*") do (
 )
 endlocal
 
+:dl_shader
+if not "%autoclean%"=="0" goto dl_shader_go
+call :step "cl.gpu.shadercache" "clean.delete" "GPU SHADER CACHES"
+if "%STEPYES%"=="REDRAW" goto dl_shader
+if not defined STEPYES goto dl_dumps
+:dl_shader_go
 :: --- GPU / shader caches ---
 :: Kept on purpose. These rot: a corrupted shader cache is a classic cause of
 :: artifacts, stutter and launch failures, and clearing it is the standard fix.
@@ -984,6 +1014,12 @@ echo %date% %time% : Cleared GPU/shader caches                      >> %logs%
 :: re-rendering optimized media/peak files is hours of work on a real project,
 :: not a few seconds of shader compilation. They live in the opt-in purge.
 
+:dl_dumps
+if not "%autoclean%"=="0" goto dl_dumps_go
+call :step "crash.dumps" "clean.delete" "CRASH DUMPS"
+if "%STEPYES%"=="REDRAW" goto dl_dumps
+if not defined STEPYES goto dl_bin
+:dl_dumps_go
 :: --- Dumps (facultatif mais sans impact sur réglages) ---
 echo %date% %time% : MiniDump kept (crash forensics)                     >> %logs%
 :: Crash dumps: deleted on the maintainer's explicit instruction. Note this
@@ -997,6 +1033,12 @@ del /F /S /Q "%SystemRoot%\MEMORY.DMP"
 :: Same class as a browser cache. Every WebView2-hosted app (new Teams, Office
 :: add-ins, several game launchers) re-downloads and re-compiles afterwards.
 
+:dl_bin
+if not "%autoclean%"=="0" goto dl_bin_go
+call :step "recycle.bin.all.drives" "clean.delete" "RECYCLE BIN"
+if "%STEPYES%"=="REDRAW" goto dl_bin
+if not defined STEPYES goto dl_wer
+:dl_bin_go
 :: Recycle Bin: emptied on the maintainer's explicit instruction. The cleanmgr
 :: handler above covers it properly via the shell API; this pass catches the
 :: other volumes. FIXED drives only - a disconnected SMB mapping would stall.
@@ -1018,6 +1060,12 @@ echo %date% %time% : Thumbnail cache cleared - icon cache deliberately NOT touch
 :: It belongs behind an explicit question. Claiming a clean that never happens
 :: is worse than not doing it at all.
 
+:dl_wer
+if not "%autoclean%"=="0" goto dl_wer_go
+call :step "cl.wer.dumps" "clean.delete" "ERROR REPORTS AND DUMPS"
+if "%STEPYES%"=="REDRAW" goto dl_wer
+if not defined STEPYES goto dl_logs
+:dl_wer_go
 :: --- Windows Error Reporting reports + crash dumps ---
 echo %date% %time% : Deleting WER reports and crash dumps           >> %logs%
 :: The machine-wide store stays here. The per-user WER and CrashDumps
@@ -1025,6 +1073,12 @@ echo %date% %time% : Deleting WER reports and crash dumps           >> %logs%
 :: account that happens to be running OPTY.
 del /F /S /Q "%ProgramData%\Microsoft\Windows\WER\*" 2>nul
 
+:dl_logs
+if not "%autoclean%"=="0" goto dl_logs_go
+call :step "cl.logs.unbounded" "clean.delete" "UNBOUNDED LOGS"
+if "%STEPYES%"=="REDRAW" goto dl_logs
+if not defined STEPYES goto dl_cbs
+:dl_logs_go
 :: --- Unbounded log/telemetry files: the real invisible wins ---
 :: These are append-only and nothing ever prunes them. Measured on this machine
 :: when the rule was written: AMD PPC 317 MB, WMI ETL 228 MB, CbsPersist 93 MB,
@@ -1054,6 +1108,12 @@ del /F /Q "%WINDIR%\inf\setupapi.app.log"                     >nul 2>&1
 del /F /Q "%WINDIR%\debug\wiatrace.log"                       >nul 2>&1
 echo %date% %time% : Cleared unbounded log/trace files              >> %logs%
 
+:dl_cbs
+if not "%autoclean%"=="0" goto dl_cbs_go
+call :step "cl.logs.cbspanther" "clean.delete" "SERVICING LOGS"
+if "%STEPYES%"=="REDRAW" goto dl_cbs
+if not defined STEPYES goto dl_unpack
+:dl_cbs_go
 :: --- Old servicing / setup logs (CBS, Panther) ---
 echo %date% %time% : Deleting CBS and Panther logs                  >> %logs%
 del /F /Q "%WINDIR%\Logs\CBS\CbsPersist_*.log" >nul 2>&1
@@ -1065,6 +1125,12 @@ echo %date% %time% : Deleting INetCache                             >> %logs%
 :: INetCache left alone: shared WinINET cache used by Office, the Store and
 :: installers, and it stages Outlook attachments that may be open.
 
+:dl_unpack
+if not "%autoclean%"=="0" goto dl_unpack_go
+call :step "cl.driver.unpack" "clean.delete" "DRIVER UNPACK FOLDERS"
+if "%STEPYES%"=="REDRAW" goto dl_unpack
+if not defined STEPYES goto dl_browsers
+:dl_unpack_go
 :: --- GPU driver extraction leftovers (NOT the installed drivers) ---
 echo %date% %time% : Deleting driver extraction folders            >> %logs%
 rd /S /Q "C:\NVIDIA" 2>nul
@@ -1073,6 +1139,28 @@ rd /S /Q "C:\NVIDIA" 2>nul
 del /F /S /Q "C:\Intel\GfxCPLBatchFiles\*" >nul 2>&1
 del /F /S /Q "C:\Intel\Logs\*"            >nul 2>&1
 
+:: The running-launcher probes come BEFORE the per-user fan-out below:
+:: :userclean reads RUNUBI / RUNEA / RUNEPIC, and probing them after the
+:: fan-out - as this file used to - meant the first pass swept the
+:: Ubisoft, EA and Epic per-user caches even while the launcher was
+:: RUNNING, precisely what the guards exist to prevent. A launcher being
+:: up is a machine-wide fact, so the three probes run once here and their
+:: answers carry into every group below.
+set "RUNUBI=" & set "RUNEA=" & set "RUNEPIC="
+call :isrunning "upc.exe"
+if defined RUNNING set "RUNUBI=1"
+call :isrunning "EADesktop.exe"
+if defined RUNNING set "RUNEA=1"
+call :isrunning "EpicGamesLauncher.exe"
+if defined RUNNING set "RUNEPIC=1"
+if defined RUNEPIC call :L "%cWarn%" "  Epic Games Launcher is running - its caches will be skipped"
+
+:dl_browsers
+if not "%autoclean%"=="0" goto dl_browsers_go
+call :step "cl.browser.caches" "clean.delete" "BROWSER CACHES"
+if "%STEPYES%"=="REDRAW" goto dl_browsers
+if not defined STEPYES goto dl_winold
+:dl_browsers_go
 :: --- Chromium browser caches: EVERY profile, browser left running ---
 :: A rotten HTTP/code cache is a well-known cause of broken pages, stale assets
 :: and renderer crashes, and clearing it is the standard fix. It rebuilds
@@ -1094,8 +1182,14 @@ del /S /F /Q "%LOCALAPPDATA%\Microsoft\EdgeWebView\User Data\Default\Cache\*"   
 del /S /F /Q "%LOCALAPPDATA%\Microsoft\EdgeWebView\User Data\Default\Code Cache\*" >nul 2>&1
 :delete_skip_apps
 
-:: --- Windows.old (removes rollback): FULL mode only ---
-if not "%autoclean%"=="2" goto delete_skip_winold
+:: --- Windows.old (removes rollback): Auto full, or asked in manual ---
+:dl_winold
+if /i %autoclean% == 2 goto dl_winold_go
+if not "%autoclean%"=="0" goto dl_discord
+call :step "cl.winold.remove" "clean.winold" "WINDOWS.OLD"
+if "%STEPYES%"=="REDRAW" goto dl_winold
+if not defined STEPYES goto dl_discord
+:dl_winold_go
 if exist "%SystemDrive%\Windows.old" (
     echo %date% %time% : Removing Windows.old previous installation  >> %logs%
     :: /SKIPSL and /L keep the recursion out of the live profile. Windows.old
@@ -1119,8 +1213,13 @@ if exist "%SystemDrive%\Windows.old" (
         call :L "%cOK%" "  Windows.old removed"
     )
 )
-:delete_skip_winold
 
+:dl_discord
+if not "%autoclean%"=="0" goto dl_discord_go
+call :step "cl.discord.cache" "clean.delete" "DISCORD CACHE"
+if "%STEPYES%"=="REDRAW" goto dl_discord
+if not defined STEPYES goto dl_steam
+:dl_discord_go
 :: --- Discord: Electron caches (rebuild on next launch, classic fix for a
 :: stuck/blank client). Its logins live in Local Storage, which is untouched.
 :: Same guard as the browsers: deleting the unlocked data_* blocks while the
@@ -1141,7 +1240,12 @@ if defined RUNNING (
 :: multi-GB re-download of everything saved for offline listening.
 :: Teams LocalCache: known to sign the user out of the new Teams client.
 
-call :L "%cInfo%" "Cleaning game launcher caches (Steam / Ubisoft / EA / Origin / Epic)"
+:dl_steam
+if not "%autoclean%"=="0" goto dl_steam_go
+call :step "cl.steam.cache" "clean.delete" "STEAM CACHE"
+if "%STEPYES%"=="REDRAW" goto dl_steam
+if not defined STEPYES goto dl_ubi
+:dl_steam_go
 :: Steam: logs and crash dumps only - both invisible and genuinely useless.
 :: NOT steamapps\shadercache: wiping it guarantees shader re-compilation
 :: stutter, and the registry InstallPath only covers the C: library anyway
@@ -1180,17 +1284,14 @@ del /F /S /Q "%STC%\extensions_crx_cache\*"   >nul 2>&1
 >>%logs% echo %date% %time% : Steam CEF caches cleared (logins, cookies, history left alone)
 :steam_done
 set "STEAMPATH="
-:: Launcher caches - each one guarded, for the same reason as Discord: a
-:: half-deleted cache under a running client is worse than not cleaning at all.
-:: Machine-wide paths only. The per-user cache folders moved into :userclean,
-:: which loops over every profile - they used to be written against one
-:: hardcoded profile and deleted nothing on any other account.
-:: The running-process guards stay here on purpose: whether a launcher is up
-:: is a machine-wide fact, so re-testing it once per profile would be noise.
-:: RUNUBI / RUNEA carry the answer down to :userclean.
-set "RUNUBI=" & set "RUNEA="
-call :isrunning "upc.exe"
-if defined RUNNING set "RUNUBI=1"
+:: Machine-wide launcher paths only - the per-user halves live in the
+:: fan-out above. Each launcher group relies on the probes taken there.
+:dl_ubi
+if not "%autoclean%"=="0" goto dl_ubi_go
+call :step "cl.ubisoft.cache" "clean.delete" "UBISOFT CACHE"
+if "%STEPYES%"=="REDRAW" goto dl_ubi
+if not defined STEPYES goto dl_ea
+:dl_ubi_go
 :: NOT cache\* - that tree holds cache\ownership and cache\activations, the
 :: offline entitlement and activation state. Deleting them can leave games
 :: unable to start without going back online. Only the refetchable parts go.
@@ -1199,24 +1300,36 @@ if not defined RUNUBI del /F /S /Q "%UBIPF%\http2\*"  >nul 2>&1
 if not defined RUNUBI del /F /S /Q "%UBIPF%\club\*"   >nul 2>&1
 if not defined RUNUBI del /F /S /Q "%UBIPF%\ulcf\*"   >nul 2>&1
 if defined RUNUBI call :L "%cWarn%" "  Ubisoft Connect is running - skipped"
-call :isrunning "EADesktop.exe"
-if defined RUNNING set "RUNEA=1"
+:dl_ea
+if not "%autoclean%"=="0" goto dl_ea_go
+call :step "cl.ea.cache" "clean.delete" "EA APP CACHE"
+if "%STEPYES%"=="REDRAW" goto dl_ea
+if not defined STEPYES goto dl_origin
+:dl_ea_go
 if not defined RUNEA del /F /S /Q "%ProgramData%\EA Core\cache\*" >nul 2>&1
 if defined RUNEA call :L "%cWarn%" "  EA App is running - skipped"
+:dl_origin
+if not "%autoclean%"=="0" goto dl_origin_go
+call :step "cl.origin.logs" "clean.delete" "ORIGIN LOGS"
+if "%STEPYES%"=="REDRAW" goto dl_origin
+if not defined STEPYES goto dl_font
+:dl_origin_go
 :: Origin (legacy): ONLY the cache/log subfolders. Never the folder itself -
 :: %ProgramData%\Origin\LocalContent holds game entitlement data and wiping it
 :: can stop games from launching.
 del /F /S /Q "%ProgramData%\Origin\Logs\*"                                   >nul 2>&1
-set "RUNEPIC="
-call :isrunning "EpicGamesLauncher.exe"
-if defined RUNNING set "RUNEPIC=1"
-if defined RUNEPIC call :L "%cWarn%" "  Epic Games Launcher is running - skipped"
 
 :: --- REMOVED: Adobe Common Media Cache ---
 :: Deleting it forces Premiere/After Effects to re-conform audio and re-render
 :: peak files for every project. Same reasoning as the DaVinci cache:
 :: expensive to regenerate, and very much visible to the user.
 
+:dl_font
+if not "%autoclean%"=="0" goto dl_font_go
+call :step "cl.fontcache.rebuild" "clean.delete" "FONT CACHE"
+if "%STEPYES%"=="REDRAW" goto dl_font
+if not defined STEPYES goto dl_end
+:dl_font_go
 call :L "%cInfo%" "Clearing font cache (Prefetch left intact - it speeds up app launches)"
 net stop FontCache >nul 2>&1
 del /F /S /Q "%WINDIR%\ServiceProfiles\LocalService\AppData\Local\FontCache\*" 2>nul
@@ -1233,6 +1346,7 @@ net start FontCache >nul 2>&1
 :: own. Restore points are a safety net; a maintenance tool does not delete them.
 :delete_skip_vss
 
+:dl_end
 echo %date% %time% : :delete done                                        >> %logs%
 
 if /i %autoclean% == 1 goto mshutdownreboot
@@ -40607,6 +40721,7 @@ goto :eof
 ::S|clean.sfc        |_F|sfc|
 ::S|clean.wupdate    |LF|wupdate|
 ::S|clean.delete     |LF|delete|
+::S|clean.winold    |_F|dl_winold_go|
 ::S|clean.compact    |_F|clean|
 ::S|clean.defrag     |_F|defrag|
 ::S|clean.chkdsk     |__|chkdsk|
