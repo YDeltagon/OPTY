@@ -919,20 +919,10 @@ echo.                                                           >> %logs%
 echo %date% %time% : Entered :delete label                           >> %logs%
 
 call :L "%cStep%" "CLEANUP - deleting temp files, caches, logs and dumps..."
-call :L "%cInfo%" "Enabling Storage Sense (native automatic maintenance)"
-:: NOT set: the HKLM StorageSense policy. It greys out the Storage Sense
-:: toggle in Settings with "managed by your organization". The HKCU values
-:: below do the same job while leaving the user in control.
-set "SSP=HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy"
-call :regset "%SSP%" "01" REG_DWORD 1 "Storage Sense on"
-call :regset "%SSP%" "04" REG_DWORD 1 "clean temp files"
-call :regset "%SSP%" "2048" REG_DWORD 30 "run every 30 days"
-:: Pin the Downloads rules OFF explicitly. Turning Storage Sense on without
-:: doing this inherits whatever the machine already had - and on a box where
-:: 32 is 1, OPTY would be the thing that armed automatic deletion of the user's
-:: Downloads folder. 512 is the age threshold that goes with it.
-call :regset "%SSP%" "32" REG_DWORD 0 "NEVER auto-delete Downloads"
-call :regset "%SSP%" "512" REG_DWORD 0 "Downloads age threshold off"
+:: --- MOVED: the Storage Sense configuration lives in :setup_updates now.
+:: --- It is a setting, not a cleanup: forcing it on at every CLEAN run was
+:: --- the monolith pattern the card rework removes. The Downloads safety
+:: --- pins are re-asserted there as repairs (storagesense.downloads.off).
 :: --- Windows Update download cache ---
 echo %date% %time% : Stopping wuauserv service                       >> %logs%
 net stop wuauserv >nul 2>&1
@@ -1430,116 +1420,80 @@ pause
 goto menu
 
 
-:mreenable
+:setup_updates
+:: Updates and automatic maintenance, driven by the cards.
+::
+:: What this replaces: :mreenable offered three manual actions, and two of
+:: them wrote 0 into policy values whose Windows default is the value being
+:: ABSENT - the third-state mistake this file keeps making and gating. Both
+:: of those are identical in all five profile columns (DELETE), so they are
+:: repairs, never questions. The Office update is a real preference: OFFICE
+:: and LAPTOP trigger it, GAMING and SERVER do not interrupt the machine,
+:: WINDOWS leaves it to Office's own scheduler.
+::
+:: Storage Sense moved here from :delete. It is a SETTING, not a cleanup -
+:: the CLEAN pass was forcing it on at every run, which is exactly the
+:: monolith pattern the card rework removes. The two values every profile
+:: agrees on are pinned as repairs, most importantly the Downloads rules:
+:: inheriting whatever the machine already had is how OPTY could have been
+:: the thing that armed auto-deletion of the user's Downloads folder.
 echo.                                                           >> %logs%
-echo ====================== :MREENABLE ======================     >> %logs%
-echo.                                                           >> %logs%
-echo %date% %time% : Entered :mreenable label                         >> %logs%
+echo ====================== :SETUP_UPDATES ==================== >> %logs%
+echo %date% %time% : Entered :setup_updates label                 >> %logs%
 color F2
 cls
-echo.                                                  
-echo  WELCOME to OPTY by @YannD-Deltagon                         
-echo    Choose the option to re-enable:                            
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo   1. Start office update                                            
-echo   2. Enable chrome update (if your company uses GPO [Register])      
-echo   3. Enable windows update (if your company uses GPO [Register])    
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo   0. Menu                                                         
-echo.                                                  
-echo.                                                  
-set "choice="
-set /p choice= Enter action:
-echo %date% %time% : ReEnable.bat-mreenable "%choice%"                     >> %logs%
-if "%choice%"=="1" goto office_update
-if "%choice%"=="2" goto enable_google_update
-if "%choice%"=="3" goto enable_windows_update
-if "%choice%"=="0" goto msetup
-color 0C
-echo This is not a valid action                                      
-echo %date% %time% : Invalid option in :mreenable                        >> %logs%
-timeout /t 5
-goto mreenable
+call :banner "UPDATES AND AUTO-MAINTENANCE"
+echo(
+call :ti "Update BLOCKS are repaired for every profile: their Windows default" "Les BLOCAGES de mise a jour sont repares pour tous les profils : leur"
+call :ti "is the policy being absent, so they are deleted, never written 0." "defaut Windows est la strategie absente - supprimee, jamais ecrite a 0."
+call :ti "Storage Sense and the Office update are real preferences and asked." "Storage Sense et la mise a jour Office sont de vraies preferences, posees."
+echo(
+if not defined AUTOPROFILE pause
 
+:: --- repairs first: identical in all five columns ---
+call :L "%cStep%" "Removing update blocks (their default is the value being ABSENT)"
+:: google.update.policy.on - the old code wrote UpdateDefault=1, a third
+:: state that kept the policy machinery alive. Chrome's own default IS the
+:: policy being absent, so it is deleted.
+call :killkey "HKLM\SOFTWARE\Policies\Google\Update" "UpdateDefault"
+:: windows.update.policy.reenable - the same shape, four values. The old
+:: code stopped wuauserv to write four zeros; deleting a policy value needs
+:: neither the stop nor the zeros. :reassert_defaults purges the wider list.
+call :killkey "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" "DisableWindowsUpdateAccess"
+call :killkey "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" "SetDisableUXWUAccess"
+call :killkey "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" "UseWUServer"
+call :killkey "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" "ExcludeWUDriversInQualityUpdate"
+call :L "%cOK%" "  update policies are at shipped behaviour"
 
-:office_update
-echo.                                                           >> %logs%
-echo ====================== :OFFICE_UPDATE ====================== >> %logs%
-echo.                                                           >> %logs%
-echo %date% %time% : Entered :office_update label                    >> %logs%
-cls
-echo Microsoft Office update...
-"C:\Program Files\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe" /update user
-echo %date% %time% : Launched OfficeC2RClient.exe /update user   >> %logs%
-pause
-goto mreenable
+:: --- Storage Sense: two questions, two pins ---
+echo(
+call :L "%cStep%" "Storage Sense - the automatic cleanup built into Windows"
+set "SSP=HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy"
+call :askreg "storagesense.enable" 1 "%SSP%" "01" REG_DWORD "Storage Sense master switch"
+call :askreg "storagesense.cadence" 1 "%SSP%" "2048" REG_DWORD "Storage Sense cadence (days)"
+:: The safety pins are repairs - every profile answers the same:
+call :regset "%SSP%" "04" REG_DWORD 1 "clean temp files rule"
+call :regset "%SSP%" "32" REG_DWORD 0 "NEVER auto-delete Downloads"
+call :regset "%SSP%" "512" REG_DWORD 0 "Downloads age threshold off"
 
-
-:enable_google_update
-echo.                                                           >> %logs%
-echo ====================== :ENABLE_GOOGLE_UPDATE ================= >> %logs%
-echo.                                                           >> %logs%
-echo %date% %time% : Entered :enable_google_update label             >> %logs%
-cls
-:: Never force-close the browser. The HKLM policy write below does not need
-:: Chrome closed at all; the old taskkill just destroyed the user's tabs.
-call :isrunning "chrome.exe"
-if defined RUNNING (
-    call :L "%cWarn%" "Chrome is running. Close it yourself if you want, then press a key."
-    call :L "%cInfo%" "OPTY never force-closes your browser."
-    pause
+:: --- Office Click-to-Run ---
+echo(
+call :ask "office.c2r.update" 3
+if "%ANSWER%"=="SKIP" goto su_done
+call :profval "office.c2r.update" "%ANSWER%"
+if /i not "%PROFVAL%"=="RUN" ( call :L "%cInfo%" "  left alone  Office update (profile %ANSWER% does not trigger it)" & goto su_done )
+if not exist "%ProgramFiles%\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe" (
+    call :L "%cInfo%" "  absent   Office Click-to-Run is not installed on this machine"
+    goto su_done
 )
-echo %date% %time% : Chrome close requested, never force-killed     >> %logs%
-cls
-REG ADD "HKLM\SOFTWARE\Policies\Google\Update" /v "UpdateDefault" /t REG_DWORD /d 1 /f
-echo %date% %time% : Set Google UpdateDefault=1                     >> %logs%
-start chrome.exe
-echo %date% %time% : Launched Chrome                                >> %logs%
-echo.                                                  
-echo Go to .../help/about.                                       
-echo This launches the Update                                        
-echo.                                                  
-pause
-goto mreenable
+call :L "%cInfo%" "  starting the Office update client (it reports in its own window)"
+"%ProgramFiles%\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe" /update user
+>>%logs% echo %date% %time% : Launched OfficeC2RClient.exe /update user
+:su_done
 
-
-:enable_windows_update
-echo.                                                           >> %logs%
-echo ====================== :ENABLE_WINDOWS_UPDATE ============== >> %logs%
-echo.                                                           >> %logs%
-echo %date% %time% : Entered :enable_windows_update label          >> %logs%
-cls
-Net stop wuauserv
-echo %date% %time% : Stopped service wuauserv                       >> %logs%
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "DisableWindowsUpdateAccess" /t REG_DWORD /d 0 /f
-echo %date% %time% : Set DisableWindowsUpdateAccess=0              >> %logs%
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "SetDisableUXWUAccess" /t REG_DWORD /d 0 /f
-echo %date% %time% : Set SetDisableUXWUAccess=0                    >> %logs%
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v "UseWUServer" /t REG_DWORD /d 0 /f
-echo %date% %time% : Set UseWUServer=0                              >> %logs%
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "ExcludeWUDriversInQualityUpdate" /t REG_DWORD /d 0 /f
-echo %date% %time% : Set ExcludeWUDriversInQualityUpdate=0         >> %logs%
-echo.                                                  
-Net start wuauserv
-echo %date% %time% : Started service wuauserv                        >> %logs%
-pause
-goto mreenable
+call :L "%cOK%" "Updates and auto-maintenance section done."
+if not defined AUTOPROFILE pause
+goto msetup
 
 
 :mregprofil
@@ -2610,7 +2564,7 @@ call :mopt 2 "Display & GPU"      "Affichage & GPU"   "MPO, HAGS, overlays, shad
 call :mopt 3 "System & gaming"    "Systeme & jeu"     "registry, power plan, mouse" "registre, plan d alimentation, souris"
 call :mopt 4 "Privacy & debloat"  "Vie privee"        "Recall, Copilot, ads, telemetry" "Recall, Copilot, pub, telemetrie"
 call :mopt 5 "Services"          "Services"          "start types - 15 repaired, 3 asked" "types de demarrage - 15 repares, 3 poses"
-call :mopt 6 "Re-enable updates" "Reactiver les MAJ" "Office / Chrome / Windows Update" "Office / Chrome / Windows Update"
+call :mopt 6 "Updates & auto-maintenance" "MAJ & maintenance auto" "unblock updates, Storage Sense, Office" "debloquer les MAJ, Storage Sense, Office"
 echo(
 call :mopt P "Apply one profile to everything" "Appliquer un profil a tout" "the two-minute path" "le chemin en deux minutes"
 call :mopt L "Language: %UILANG%" "Langue : %UILANG%" "switch FR / EN" "basculer FR / EN"
@@ -2625,7 +2579,7 @@ if "%choice%"=="2" goto setup_gpu
 if "%choice%"=="3" goto setup_system
 if "%choice%"=="4" goto setup_privacy
 if "%choice%"=="5" goto setup_services
-if "%choice%"=="6" goto mreenable
+if "%choice%"=="6" goto setup_updates
 if /i "%choice%"=="P" goto setup_profile
 if /i "%choice%"=="L" goto setup_lang
 if "%choice%"=="0" goto menu
