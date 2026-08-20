@@ -2690,6 +2690,10 @@ if not defined AUTOPROFILE pause
 call :askreg "reg.menuanimate" 5 "HKCU\Control Panel\Desktop" "MenuAnimate" REG_SZ "Menu animations"
 call :askreg "reg.dragfullwindows" 5 "HKCU\Control Panel\Desktop" "DragFullWindows" REG_SZ "Show window contents while dragging"
 
+:: --- The logon startup-app delay. GAMING writes 0, every other profile
+:: --- deletes the override: the default is the value being absent.
+call :askreg "cl.startupdelay.zero" 5 "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" "StartupDelayInMSec" REG_DWORD "Startup app delay at logon"
+
 :: --- Mouse pointer: acceleration, the truncated SmoothMouse curves an older
 :: --- OPTY wrote, and making the change live. All four values are REG_SZ
 :: --- strings - a DWORD write here is accepted by reg.exe and ignored by
@@ -4801,10 +4805,12 @@ if errorlevel 1 (
 ) else (
     call :L "%cOK%" "Restore point created"
 )
-:: Put the throttle back to the Windows default (1440 minutes) so OPTY does not
-:: leave System Protection permanently altered behind it.
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "SystemRestorePointCreationFrequency" /t REG_DWORD /d 1440 /f >nul 2>&1
-echo %date% %time% : Restore-point throttle put back to 1440 min     >> %logs%
+:: Put the throttle back by DELETING the value: the Windows default is the
+:: value being ABSENT (which means 1440). Writing 1440 was a third state -
+:: rp.throttle.window and reg.srp.creation.frequency both say DELETE in all
+:: five columns, and this is the line they describe.
+reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "SystemRestorePointCreationFrequency" /f >nul 2>&1
+echo %date% %time% : Restore-point throttle back to the absent default >> %logs%
 goto :eof
 ::
 :: ---- gpu.ulps : AMD Ultra Low Power State -----------------------------------
