@@ -473,7 +473,7 @@ echo.
 set "choice="
 set /p choice= Enter action:
 echo %date% %time% : Opti-mopti "%choice%"                            >> %logs%
-if /i "%choice%"=="1" (set "autoclean=0" & set "autoshutdownreboot=5" & call :logvars & goto mdisenable)
+if /i "%choice%"=="1" (set "autoclean=0" & set "autoshutdownreboot=5" & call :logvars & goto mnetdns)
 if /i "%choice%"=="2" (set "autoclean=1" & set "autoshutdownreboot=0" & call :logvars & goto wupdate)
 if /i "%choice%"=="3" (set "autoclean=2" & set "autoshutdownreboot=0" & call :logvars & goto stopapps)
 if /i "%choice%"=="2s" (set "autoclean=1" & set "autoshutdownreboot=1" & call :logvars & goto wupdate)
@@ -488,59 +488,16 @@ timeout /t 5
 goto mopti
 
 
-:mdisenable
-echo.                                                           >> %logs%
-echo ====================== :MDISENABLE ======================       >> %logs%
-echo.                                                           >> %logs%
-echo %date% %time% : Entered :mdisenable label                       >> %logs%
-color F4
-cls
-echo.                                                  
-echo  WELCOME to OPTY by @YannD-Deltagon                         
-echo    Choose an option to Disable/Enable:                          
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo   ani. Animation                                                 
-echo   mov. Window content while moving                               
-echo   fad. File access date updating                                  
-echo   hbn. Hibernation mods                                           
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo  Add "+" or "-" in front of an action to activate or deactivate (example "-ani" to deactivate animations) 
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo   2. Next                                                          
-echo   0. Menu                                                          
-echo.                                                  
-echo.                                                  
-set "choice="
-set /p choice= Enter action:
-echo %date% %time% : Opti-mdisenable "%choice%"                         >> %logs%
-if /i "%choice%"=="-ani" echo %date% %time% : Action - Disable animations (MenuAnimate=0) >> %logs% & echo  -ani & reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "0" /f & pause & goto mdisenable
-if /i "%choice%"=="+ani" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "MenuAnimate" /t REG_SZ /d "1" /f & echo %date% %time% : Action - Enable animations (MenuAnimate=1) >> %logs% & echo  +ani & pause & goto mdisenable
-if /i "%choice%"=="-mov" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "0" /f & echo %date% %time% : Action - Disable window content while moving (DragFullWindows=0) >> %logs% & echo  -mov & pause & goto mdisenable
-if /i "%choice%"=="+mov" reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "DragFullWindows" /t REG_SZ /d "1" /f & echo %date% %time% : Action - Enable window content while moving (DragFullWindows=1) >> %logs% & echo  +mov & pause & goto mdisenable
-if /i "%choice%"=="-fad" fsutil behavior set disablelastaccess 1 & echo %date% %time% : Action - Disable file access date updating (disablelastaccess=1) >> %logs% & echo  -fad & pause & goto mdisenable
-if /i "%choice%"=="+fad" fsutil behavior set disablelastaccess 2 & echo %date% %time% : Action - Restore last-access to the Windows default (disablelastaccess=2, System Managed) >> %logs% & echo  +fad & pause & goto mdisenable
-if /i "%choice%"=="-hbn" powercfg.exe /hibernate off & echo %date% %time% : Action - Disable hibernation (powercfg h off) >> %logs% & echo  -hbn & pause & goto mdisenable
-if /i "%choice%"=="+hbn" powercfg.exe /hibernate on & echo %date% %time% : Action - Enable hibernation (powercfg h on) >> %logs% & echo  +hbn & pause & goto mdisenable
-if /i "%choice%"=="2" goto mnetdns
-if /i "%choice%"=="0" goto menu
-color 0C
-echo This is not a valid action                                      
-echo %date% %time% : Invalid option in :mdisenable                     >> %logs%
-timeout /t 5
-goto mdisenable
-
+:: --- REMOVED: :mdisenable ---
+:: This was an English-only, card-less legacy toggle menu (menu animations,
+:: drag-full-windows, NTFS last-access, hibernation) reached by manual CLEAN
+:: choice 1 - none of it disk cleanup, all of it duplicating live bilingual
+:: SETUP cards (reg.menuanimate, reg.dragfullwindows, powercfg.hibernate,
+:: already :askreg/:ask-wired in :setup_system). fsutil.disablelastaccess,
+:: the one card this menu's -fad/+fad toggle partially overlapped, is its
+:: own repair applied by :reassert_defaults (all five profiles agree on 2,
+:: so it is never asked - see the card's own ::P row). Manual choice 1 now
+:: goes straight to :mnetdns, same as this menu's own "2. Next" always did.
 
 :stopapps
 echo.                                                           >> %logs%
@@ -13250,10 +13207,10 @@ goto :eof
 ::X|FR|powercfg.hibernate.028|                     NTFS partagee en double amorcage parce que le volume
 ::X|FR|powercfg.hibernate.029|                     porte encore l'indicateur d'hibernation.
 ::X|FR|powercfg.hibernate.030|
-::X|FR|powercfg.hibernate.031|  Cible           : powercfg.exe /hibernate off - OPTY.bat line 487 (menu
-::X|FR|powercfg.hibernate.032|                    entry -hbn in :mdisenable); powercfg.exe /hibernate on
-::X|FR|powercfg.hibernate.033|                    - line 488 (+hbn). Affects C:\hiberfil.sys and the
-::X|FR|powercfg.hibernate.034|                    states listed by powercfg /a.
+::X|FR|powercfg.hibernate.031|  Cible           : powercfg.exe /hibernate off si PROFVAL=off, powercfg.exe
+::X|FR|powercfg.hibernate.032|                    /hibernate on si PROFVAL=on - dans :setup_system, juste
+::X|FR|powercfg.hibernate.033|                    apres le bloc des etats CPU au repos. Affecte
+::X|FR|powercfg.hibernate.034|                    C:\hiberfil.sys et les etats listes par powercfg /a.
 ::T|EN|powercfg.hibernate.001|HIBERNATION, HIBERFIL.SYS AND FAST STARTUP
 ::T|EN|powercfg.hibernate.002|
 ::T|EN|powercfg.hibernate.003|  What it is      : Hibernation writes the entire contents of RAM to
@@ -13353,10 +13310,10 @@ goto :eof
 ::X|EN|powercfg.hibernate.023|                    NTFS partition on a dual-boot machine because the
 ::X|EN|powercfg.hibernate.024|                    volume was left with a dirty hibernation flag.
 ::X|EN|powercfg.hibernate.025|
-::X|EN|powercfg.hibernate.026|  Target          : powercfg.exe /hibernate off - OPTY.bat line 487 (menu
-::X|EN|powercfg.hibernate.027|                    entry -hbn in :mdisenable); powercfg.exe /hibernate on
-::X|EN|powercfg.hibernate.028|                    - line 488 (+hbn). Affects C:\hiberfil.sys and the
-::X|EN|powercfg.hibernate.029|                    states listed by powercfg /a.
+::X|EN|powercfg.hibernate.026|  Target          : powercfg.exe /hibernate off when PROFVAL=off, powercfg.
+::X|EN|powercfg.hibernate.027|                    exe /hibernate on when PROFVAL=on - in :setup_system,
+::X|EN|powercfg.hibernate.028|                    right after the CPU idle states block. Affects
+::X|EN|powercfg.hibernate.029|                    C:\hiberfil.sys and the states listed by powercfg /a.
 ::
 :: ---- power.throttling.off (preference) ------------------------------
 ::P|power.throttling.off|DELETE|1|DELETE|DELETE|DELETE|
@@ -23981,7 +23938,7 @@ goto :eof
 ::X|EN|net.helper.nicdefault.read.010|                    REG_SZ; if no default is published the keyword is left
 ::X|EN|net.helper.nicdefault.read.011|                    untouched (OPTY.bat ~3489-3499)
 ::
-:: ---- fsutil.disablelastaccess (preference) --------------------------
+:: ---- fsutil.disablelastaccess (repair) -------------------------------
 ::P|fsutil.disablelastaccess|2|2|2|2|2|
 ::T|FR|fsutil.disablelastaccess.001|HORODATAGE NTFS DU DERNIER ACCES
 ::T|FR|fsutil.disablelastaccess.002|
@@ -24739,10 +24696,10 @@ goto :eof
 ::X|FR|recycle.bin.all.drives.023|
 ::X|FR|recycle.bin.all.drives.024|  Cible           : for %%D in (%FIXEDLIST%) do if exist
 ::X|FR|recycle.bin.all.drives.025|                    "%%D:\$Recycle.Bin" rd /S /Q "%%D:\$Recycle.Bin" -
-::X|FR|recycle.bin.all.drives.026|                    OPTY.bat line 1004, inside the :delete step. FIXEDLIST
-::X|FR|recycle.bin.all.drives.027|                    is built by :fixeddrives at OPTY.bat lines 3250 to
-::X|FR|recycle.bin.all.drives.028|                    3262 and holds fixed drive letters only, never network
-::X|FR|recycle.bin.all.drives.029|                    mappings. The step table at OPTY.bat line 19132
+::X|FR|recycle.bin.all.drives.026|                    OPTY.bat line 1035, inside the :delete step. FIXEDLIST
+::X|FR|recycle.bin.all.drives.027|                    is built by :fixeddrives at OPTY.bat lines 4031 to
+::X|FR|recycle.bin.all.drives.028|                    4043 and holds fixed drive letters only, never network
+::X|FR|recycle.bin.all.drives.029|                    mappings. The step table at OPTY.bat line 40821
 ::X|FR|recycle.bin.all.drives.030|                    declares clean.delete as LF, so today this runs in
 ::X|FR|recycle.bin.all.drives.031|                    both auto-lite and auto-full.
 ::T|EN|recycle.bin.all.drives.001|RECYCLE BIN ON EVERY FIXED DRIVE, EVERY USER
@@ -24822,10 +24779,10 @@ goto :eof
 ::X|EN|recycle.bin.all.drives.020|
 ::X|EN|recycle.bin.all.drives.021|  Target          : for %%D in (%FIXEDLIST%) do if exist
 ::X|EN|recycle.bin.all.drives.022|                    "%%D:\$Recycle.Bin" rd /S /Q "%%D:\$Recycle.Bin" -
-::X|EN|recycle.bin.all.drives.023|                    OPTY.bat line 1004, inside the :delete step. FIXEDLIST
-::X|EN|recycle.bin.all.drives.024|                    is built by :fixeddrives at OPTY.bat lines 3250 to
-::X|EN|recycle.bin.all.drives.025|                    3262 and holds fixed drive letters only, never network
-::X|EN|recycle.bin.all.drives.026|                    mappings. The step table at OPTY.bat line 19132
+::X|EN|recycle.bin.all.drives.023|                    OPTY.bat line 1035, inside the :delete step. FIXEDLIST
+::X|EN|recycle.bin.all.drives.024|                    is built by :fixeddrives at OPTY.bat lines 4031 to
+::X|EN|recycle.bin.all.drives.025|                    4043 and holds fixed drive letters only, never network
+::X|EN|recycle.bin.all.drives.026|                    mappings. The step table at OPTY.bat line 40821
 ::X|EN|recycle.bin.all.drives.027|                    declares clean.delete as LF, so today this runs in
 ::X|EN|recycle.bin.all.drives.028|                    both auto-lite and auto-full.
 ::
@@ -34397,8 +34354,8 @@ goto :eof
 ::X|FR|cl.wupdate.download.017|                     affichées au lieu d'être journalisées.
 ::X|FR|cl.wupdate.download.018|
 ::X|FR|cl.wupdate.download.019|  Cible           : C:\Windows\SoftwareDistribution\Download\* - net stop
-::X|FR|cl.wupdate.download.020|                    wuauserv at line 903, del /S /F /Q at line 905, net
-::X|FR|cl.wupdate.download.021|                    start wuauserv at line 907, all inside the :delete
+::X|FR|cl.wupdate.download.020|                    wuauserv at line 916, del /S /F /Q at line 918, net
+::X|FR|cl.wupdate.download.021|                    start wuauserv at line 920, all inside the :delete
 ::X|FR|cl.wupdate.download.022|                    block of OPTY.bat.
 ::T|EN|cl.wupdate.download.001|WINDOWS UPDATE DOWNLOAD CACHE
 ::T|EN|cl.wupdate.download.002|
@@ -34474,8 +34431,8 @@ goto :eof
 ::X|EN|cl.wupdate.download.016|                    logged.
 ::X|EN|cl.wupdate.download.017|
 ::X|EN|cl.wupdate.download.018|  Target          : C:\Windows\SoftwareDistribution\Download\* - net stop
-::X|EN|cl.wupdate.download.019|                    wuauserv at line 903, del /S /F /Q at line 905, net
-::X|EN|cl.wupdate.download.020|                    start wuauserv at line 907, all inside the :delete
+::X|EN|cl.wupdate.download.019|                    wuauserv at line 916, del /S /F /Q at line 918, net
+::X|EN|cl.wupdate.download.020|                    start wuauserv at line 920, all inside the :delete
 ::X|EN|cl.wupdate.download.021|                    block of OPTY.bat.
 ::
 :: ---- cl.drivesweep.fixed (risky) -------------------------------
@@ -34809,7 +34766,7 @@ goto :eof
 ::X|FR|cl.temp.windir.010|                         vraie différence et non du remplissage.
 ::X|FR|cl.temp.windir.011|
 ::X|FR|cl.temp.windir.012|  Cible           : %WINDIR%\Temp\* - a single del /S /F /Q at OPTY.bat
-::X|FR|cl.temp.windir.013|                    line 921, inside the :delete block.
+::X|FR|cl.temp.windir.013|                    line 946, inside the :delete block.
 ::T|EN|cl.temp.windir.001|SYSTEM TEMP FOLDER
 ::T|EN|cl.temp.windir.002|
 ::T|EN|cl.temp.windir.003|  What it is      : %WINDIR%\Temp is the scratch folder that Windows
@@ -34869,7 +34826,7 @@ goto :eof
 ::X|EN|cl.temp.windir.008|                       real difference rather than filler.
 ::X|EN|cl.temp.windir.009|
 ::X|EN|cl.temp.windir.010|  Target          : %WINDIR%\Temp\* - a single del /S /F /Q at OPTY.bat
-::X|EN|cl.temp.windir.011|                    line 921, inside the :delete block.
+::X|EN|cl.temp.windir.011|                    line 946, inside the :delete block.
 ::
 :: ---- cl.temp.userall (cleanup) -----------------------------------
 ::P|cl.temp.userall|DELETE|DELETE|DELETE|DELETE|KEEP|
@@ -36392,31 +36349,35 @@ goto :eof
 ::X|FR|cl.winold.remove.012|                         Windows faire le travail proprement, à son
 ::X|FR|cl.winold.remove.013|                         rythme.
 ::X|FR|cl.winold.remove.014|
-::X|FR|cl.winold.remove.015|  Problemes connus : Il manque /SKIPSL à takeown et /L à icacls : les deux
-::X|FR|cl.winold.remove.016|                     récursions peuvent donc suivre les anciennes
-::X|FR|cl.winold.remove.017|                     jonctions de compatibilité de Windows.old et
-::X|FR|cl.winold.remove.018|                     réattribuer propriété et ACL sur des dossiers actifs
-::X|FR|cl.winold.remove.019|                     de C:\Users. Correction dans le code : takeown /F ...
-::X|FR|cl.winold.remove.020|                     /R /A /D Y /SKIPSL et icacls ... /grant
-::X|FR|cl.winold.remove.021|                     administrators:F /T /C /L. Par ailleurs, rd /S /Q
-::X|FR|cl.winold.remove.022|                     envoie ses erreurs vers nul, donc un Windows.old
-::X|FR|cl.winold.remove.023|                     partiellement supprimé est annoncé comme un succès.
-::X|FR|cl.winold.remove.024|
-::X|FR|cl.winold.remove.025|  Non verifie (en)  : How far the takeown and icacls recursion actually
-::X|FR|cl.winold.remove.026|                      walks through a junction depends on the exact
-::X|FR|cl.winold.remove.027|                      junction set your upgrade left in Windows.old, which
-::X|FR|cl.winold.remove.028|                      was not enumerated on this machine. The mechanism -
-::X|FR|cl.winold.remove.029|                      takeown /R and icacls /T follow links unless told
-::X|FR|cl.winold.remove.030|                      not to, and the legacy compatibility junctions store
-::X|FR|cl.winold.remove.031|                      absolute targets pointing into the live profile - is
-::X|FR|cl.winold.remove.032|                      the reason /SKIPSL and /L exist. Treat it as likely,
-::X|FR|cl.winold.remove.033|                      not measured.
-::X|FR|cl.winold.remove.034|
-::X|FR|cl.winold.remove.035|  Cible           : OPTY.bat lines 1078-1086. takeown /F
-::X|FR|cl.winold.remove.036|                    "%SystemDrive%\Windows.old" /R /A /D Y, then icacls
-::X|FR|cl.winold.remove.037|                    "%SystemDrive%\Windows.old" /grant administrators:F /T
-::X|FR|cl.winold.remove.038|                    /C, then rd /S /Q. Every command's output goes to nul
-::X|FR|cl.winold.remove.039|                    and the rd errors go to 2>nul.
+::X|FR|cl.winold.remove.015|  Problemes connus : Aucun actuellement. Une version anterieure de cette
+::X|FR|cl.winold.remove.016|                     etape omettait /SKIPSL sur takeown et /L sur icacls,
+::X|FR|cl.winold.remove.017|                     ce qui laissait les deux recursions suivre les
+::X|FR|cl.winold.remove.018|                     anciennes jonctions de compatibilite dans Windows.old
+::X|FR|cl.winold.remove.019|                     et reattribuer propriete et ACL sur des dossiers
+::X|FR|cl.winold.remove.020|                     actifs de C:\Users ; les deux options sont desormais
+::X|FR|cl.winold.remove.021|                     presentes (voir Cible plus bas). Par ailleurs, les
+::X|FR|cl.winold.remove.022|                     erreurs de rd /S /Q etaient jetees, donc un
+::X|FR|cl.winold.remove.023|                     Windows.old partiellement supprime etait signale
+::X|FR|cl.winold.remove.024|                     comme un succes complet - le code verifie desormais
+::X|FR|cl.winold.remove.025|                     si le dossier existe encore ensuite et signale un
+::X|FR|cl.winold.remove.026|                     retrait PARTIEL dans ce cas.
+::X|FR|cl.winold.remove.027|
+::X|FR|cl.winold.remove.028|  Non verifie (en)  : How far the takeown and icacls recursion actually
+::X|FR|cl.winold.remove.029|                      walks through a junction depends on the exact
+::X|FR|cl.winold.remove.030|                      junction set your upgrade left in Windows.old, which
+::X|FR|cl.winold.remove.031|                      was not enumerated on this machine. The mechanism -
+::X|FR|cl.winold.remove.032|                      takeown /R and icacls /T follow links unless told
+::X|FR|cl.winold.remove.033|                      not to, and the legacy compatibility junctions store
+::X|FR|cl.winold.remove.034|                      absolute targets pointing into the live profile - is
+::X|FR|cl.winold.remove.035|                      the reason /SKIPSL and /L exist. Treat it as likely,
+::X|FR|cl.winold.remove.036|                      not measured.
+::X|FR|cl.winold.remove.037|
+::X|FR|cl.winold.remove.038|  Cible           : OPTY.bat lignes 1182-1193 (:dl_winold_go). takeown /F
+::X|FR|cl.winold.remove.039|                    "%SystemDrive%\Windows.old" /R /A /D Y /SKIPSL, puis
+::X|FR|cl.winold.remove.040|                    icacls "%SystemDrive%\Windows.old" /grant
+::X|FR|cl.winold.remove.041|                    administrators:F /T /C /L, puis rd /S /Q. Verifie
+::X|FR|cl.winold.remove.042|                    ensuite si Windows.old existe encore et signale un
+::X|FR|cl.winold.remove.043|                    retrait PARTIEL ou COMPLET en consequence.
 ::T|EN|cl.winold.remove.001|WINDOWS.OLD (THE PREVIOUS WINDOWS INSTALLATION)
 ::T|EN|cl.winold.remove.002|
 ::T|EN|cl.winold.remove.003|  What it is      : After a feature update or an in-place upgrade, Windows
@@ -36487,29 +36448,33 @@ goto :eof
 ::X|EN|cl.winold.remove.009|                       answer: wait, and let Windows do it properly on its
 ::X|EN|cl.winold.remove.010|                       own schedule.
 ::X|EN|cl.winold.remove.011|
-::X|EN|cl.winold.remove.012|  Known problems  : takeown is missing /SKIPSL and icacls is missing /L,
-::X|EN|cl.winold.remove.013|                    so both recursions can follow the legacy compatibility
-::X|EN|cl.winold.remove.014|                    junctions inside Windows.old and reassign ownership
-::X|EN|cl.winold.remove.015|                    and ACLs on live folders under C:\Users. Fix in code:
-::X|EN|cl.winold.remove.016|                    takeown /F ... /R /A /D Y /SKIPSL and icacls ...
-::X|EN|cl.winold.remove.017|                    /grant administrators:F /T /C /L. Separately, rd /S /Q
-::X|EN|cl.winold.remove.018|                    sends its errors to nul, so a partially deleted
-::X|EN|cl.winold.remove.019|                    Windows.old is reported as a success.
-::X|EN|cl.winold.remove.020|
-::X|EN|cl.winold.remove.021|  Unverified      : How far the takeown and icacls recursion actually
-::X|EN|cl.winold.remove.022|                    walks through a junction depends on the exact junction
-::X|EN|cl.winold.remove.023|                    set your upgrade left in Windows.old, which was not
-::X|EN|cl.winold.remove.024|                    enumerated on this machine. The mechanism - takeown /R
-::X|EN|cl.winold.remove.025|                    and icacls /T follow links unless told not to, and the
-::X|EN|cl.winold.remove.026|                    legacy compatibility junctions store absolute targets
-::X|EN|cl.winold.remove.027|                    pointing into the live profile - is the reason /SKIPSL
-::X|EN|cl.winold.remove.028|                    and /L exist. Treat it as likely, not measured.
-::X|EN|cl.winold.remove.029|
-::X|EN|cl.winold.remove.030|  Target          : OPTY.bat lines 1078-1086. takeown /F
-::X|EN|cl.winold.remove.031|                    "%SystemDrive%\Windows.old" /R /A /D Y, then icacls
-::X|EN|cl.winold.remove.032|                    "%SystemDrive%\Windows.old" /grant administrators:F /T
-::X|EN|cl.winold.remove.033|                    /C, then rd /S /Q. Every command's output goes to nul
-::X|EN|cl.winold.remove.034|                    and the rd errors go to 2>nul.
+::X|EN|cl.winold.remove.012|  Known problems  : None currently. An earlier version of this step was
+::X|EN|cl.winold.remove.013|                    missing /SKIPSL on takeown and /L on icacls, letting
+::X|EN|cl.winold.remove.014|                    both recursions follow the legacy compatibility
+::X|EN|cl.winold.remove.015|                    junctions inside Windows.old and reassign ownership
+::X|EN|cl.winold.remove.016|                    and ACLs on live folders under C:\Users; both switches
+::X|EN|cl.winold.remove.017|                    are present now (see Target below). Separately, the
+::X|EN|cl.winold.remove.018|                    errors from rd /S /Q used to be discarded, so a
+::X|EN|cl.winold.remove.019|                    partially deleted Windows.old was silently reported as a full
+::X|EN|cl.winold.remove.020|                    success - the code now checks whether the folder still
+::X|EN|cl.winold.remove.021|                    exists afterward and reports it as PARTLY REMOVED
+::X|EN|cl.winold.remove.022|                    instead.
+::X|EN|cl.winold.remove.023|
+::X|EN|cl.winold.remove.024|  Unverified      : How far the takeown and icacls recursion actually
+::X|EN|cl.winold.remove.025|                    walks through a junction depends on the exact junction
+::X|EN|cl.winold.remove.026|                    set your upgrade left in Windows.old, which was not
+::X|EN|cl.winold.remove.027|                    enumerated on this machine. The mechanism - takeown /R
+::X|EN|cl.winold.remove.028|                    and icacls /T follow links unless told not to, and the
+::X|EN|cl.winold.remove.029|                    legacy compatibility junctions store absolute targets
+::X|EN|cl.winold.remove.030|                    pointing into the live profile - is the reason /SKIPSL
+::X|EN|cl.winold.remove.031|                    and /L exist. Treat it as likely, not measured.
+::X|EN|cl.winold.remove.032|
+::X|EN|cl.winold.remove.033|  Target          : OPTY.bat lines 1182-1193 (:dl_winold_go). takeown /F
+::X|EN|cl.winold.remove.034|                    "%SystemDrive%\Windows.old" /R /A /D Y /SKIPSL, then
+::X|EN|cl.winold.remove.035|                    icacls "%SystemDrive%\Windows.old" /grant
+::X|EN|cl.winold.remove.036|                    administrators:F /T /C /L, then rd /S /Q. Checks
+::X|EN|cl.winold.remove.037|                    afterward whether Windows.old still exists and reports
+::X|EN|cl.winold.remove.038|                    PARTLY REMOVED or REMOVED accordingly.
 ::
 :: ---- cl.discord.cache (cleanup) ----------------------------------
 ::P|cl.discord.cache|DELETE|DELETE|DELETE|DELETE|KEEP|
@@ -37180,16 +37145,20 @@ goto :eof
 ::X|FR|cl.origin.logs.005|                         signifie « laisser l'état d'origine », et il n'y
 ::X|FR|cl.origin.logs.006|                         a ici aucun état d'origine Windows.
 ::X|FR|cl.origin.logs.007|
-::X|FR|cl.origin.logs.008|  Problemes connus : Les deux chemins utilisateur passent par le
-::X|FR|cl.origin.logs.009|                     %USERHOME% codé en dur (ligne 81) au lieu de
-::X|FR|cl.origin.logs.010|                     %LOCALAPPDATA% / %APPDATA% : depuis un autre compte
-::X|FR|cl.origin.logs.011|                     que compt, ils ratent silencieusement leur cible.
-::X|FR|cl.origin.logs.012|
-::X|FR|cl.origin.logs.013|  Cible           : del /F /S /Q on
-::X|FR|cl.origin.logs.014|                    %USERHOME%\AppData\Local\Origin\Logs\*,
-::X|FR|cl.origin.logs.015|                    %USERHOME%\AppData\Roaming\Origin\Logs\*,
-::X|FR|cl.origin.logs.016|                    %ProgramData%\Origin\Logs\* - OPTY.bat lines
-::X|FR|cl.origin.logs.017|                    1142-1144, inside the :delete pass.
+::X|FR|cl.origin.logs.008|  Problemes connus : Aucun actuellement. Les deux chemins utilisateur
+::X|FR|cl.origin.logs.009|                     passaient par un %USERHOME% code en dur au lieu de
+::X|FR|cl.origin.logs.010|                     %LOCALAPPDATA% / %APPDATA%, ratant silencieusement leur
+::X|FR|cl.origin.logs.011|                     cible sur tout compte autre que celui du mainteneur.
+::X|FR|cl.origin.logs.012|                     Ces deux etapes tournent desormais depuis :userclean,
+::X|FR|cl.origin.logs.013|                     qui boucle deja sur chaque profil de la machine (voir
+::X|FR|cl.origin.logs.014|                     le commentaire a la ligne 81).
+::X|FR|cl.origin.logs.015|
+::X|FR|cl.origin.logs.016|  Cible           : del /F /S /Q sur %ProgramData%\Origin\Logs\* - OPTY.bat
+::X|FR|cl.origin.logs.017|                    ligne 1299, dans :dl_origin_go. Les deux chemins par
+::X|FR|cl.origin.logs.018|                    utilisateur, AppData\Local\Origin\Logs\* et
+::X|FR|cl.origin.logs.019|                    AppData\Roaming\Origin\Logs\* de chaque profil trouve,
+::X|FR|cl.origin.logs.020|                    sont separes : ils tournent une fois par profil
+::X|FR|cl.origin.logs.021|                    Windows depuis :userclean, OPTY.bat lignes 4136-4137.
 ::T|EN|cl.origin.logs.001|LEGACY ORIGIN LOG FOLDERS
 ::T|EN|cl.origin.logs.002|
 ::T|EN|cl.origin.logs.003|  What it is      : Origin was EA's launcher before the EA app. This step
@@ -37238,15 +37207,19 @@ goto :eof
 ::X|EN|cl.origin.logs.005|                       alone, and Windows has no shipped state here at
 ::X|EN|cl.origin.logs.006|                       all.
 ::X|EN|cl.origin.logs.007|
-::X|EN|cl.origin.logs.008|  Known problems  : The two user paths use the hardcoded %USERHOME% from
-::X|EN|cl.origin.logs.009|                    line 81 instead of %LOCALAPPDATA% / %APPDATA%, so on
-::X|EN|cl.origin.logs.010|                    any account other than compt they silently miss.
-::X|EN|cl.origin.logs.011|
-::X|EN|cl.origin.logs.012|  Target          : del /F /S /Q on
-::X|EN|cl.origin.logs.013|                    %USERHOME%\AppData\Local\Origin\Logs\*,
-::X|EN|cl.origin.logs.014|                    %USERHOME%\AppData\Roaming\Origin\Logs\*,
-::X|EN|cl.origin.logs.015|                    %ProgramData%\Origin\Logs\* - OPTY.bat lines
-::X|EN|cl.origin.logs.016|                    1142-1144, inside the :delete pass.
+::X|EN|cl.origin.logs.008|  Known problems  : None currently. The two user paths used to go through
+::X|EN|cl.origin.logs.009|                    a hardcoded %USERHOME% instead of %LOCALAPPDATA% /
+::X|EN|cl.origin.logs.010|                    %APPDATA%, silently missing on every account except the
+::X|EN|cl.origin.logs.011|                    one the maintainer used to write it. Both steps now run
+::X|EN|cl.origin.logs.012|                    from :userclean instead, which already loops over every
+::X|EN|cl.origin.logs.013|                    profile on the machine (see the comment at line 81).
+::X|EN|cl.origin.logs.014|
+::X|EN|cl.origin.logs.015|  Target          : del /F /S /Q on %ProgramData%\Origin\Logs\* - OPTY.bat
+::X|EN|cl.origin.logs.016|                    line 1299, inside :dl_origin_go. The two per-user
+::X|EN|cl.origin.logs.017|                    paths, AppData\Local\Origin\Logs\* and AppData\Roaming\
+::X|EN|cl.origin.logs.018|                    Origin\Logs\* of each discovered profile, are separate:
+::X|EN|cl.origin.logs.019|                    they run once per Windows profile from :userclean,
+::X|EN|cl.origin.logs.020|                    OPTY.bat lines 4136-4137.
 ::
 :: ---- cl.epic.webcache (cleanup) ----------------------------------
 ::P|cl.epic.webcache|DELETE|DELETE|DELETE|DELETE|KEEP|
