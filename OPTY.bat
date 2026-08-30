@@ -3098,15 +3098,15 @@ goto :eof
 :setup_services
 :: Service start types.
 ::
-:: Of the eighteen service cards, only THREE carry different values across
-:: profiles - WSearch, the Print Spooler, and the update stack. The other
+:: Of the seventeen service cards, only TWO carry different values across
+:: profiles - WSearch and the Print Spooler. The other
 :: fifteen hold one value in all five columns, which is the answer rather
 :: than a gap: those services have one correct start type and no use case
-:: changes it. So fifteen are re-asserted as repairs and three are asked.
-:: Asking eighteen questions where fifteen have a single possible answer is
+:: changes it. So fifteen are re-asserted as repairs and two are asked.
+:: Asking seventeen questions where fifteen have a single possible answer is
 :: noise dressed up as choice.
 ::
-:: The three that vary are precisely the ones this file got wrong twice: it
+:: The two that vary are precisely the ones this file got wrong twice: it
 :: degraded WSearch and the Spooler on folklore, then forced them back on
 :: mine. Tested live, Manual on both breaks nothing on a machine with no
 :: printer, and search runs anyway because something demand-starts it.
@@ -3117,7 +3117,7 @@ cls
 call :banner "SERVICES"
 echo(
 call :ti "Fifteen of these have one correct start type and are simply repaired." "Quinze d entre eux n ont qu un seul type de demarrage correct : ils sont repares."
-call :ti "Three genuinely depend on how you use the machine, and only those are" "Trois dependent vraiment de votre usage, et ce sont les seuls a etre poses"
+call :ti "Two genuinely depend on how you use the machine, and only those are" "Deux dependent vraiment de votre usage, et ce sont les seuls a etre poses"
 call :ti "asked. A start type is never forced over a deliberate choice." "en question. Un type de demarrage n est jamais impose sur un choix delibere."
 echo(
 if not defined AUTOPROFILE pause
@@ -3141,21 +3141,10 @@ call :svcset "SecurityHealthService" demand 3 "Windows Security health"
 call :svcset "RemoteRegistry" disabled 4 "RemoteRegistry (off by default)"
 sc start SysMain >nul 2>&1
 
-:: --- the three that genuinely depend on the machine
+:: --- the two that genuinely depend on the machine
 echo(
-call :L "%cStep%" "The three that depend on how you use this PC"
+call :L "%cStep%" "The two that depend on how you use this PC"
 call :svc_wsearch_spooler
-
-:: --- the update stack is a stop/start, not a start type, so it is asked
-:: --- but applied by hand.
-call :ask "svc.stop.update.stack" 5
-if "%ANSWER%"=="SKIP" goto sv_done
-call :profval "svc.stop.update.stack" "%ANSWER%"
-if /i not "%PROFVAL%"=="STOP" goto sv_done
-call :L "%cInfo%" "  stopping the update stack so its cache can be cleared"
-net stop wuauserv >nul 2>&1
-net stop bits     >nul 2>&1
-:sv_done
 
 call :L "%cOK%" "Services section done."
 if not defined AUTOPROFILE pause
@@ -26403,177 +26392,6 @@ goto :eof
 ::X|EN|rad.driververifier.killkey.022|                    HKLM\SYSTEM\CurrentControlSet\Control\Session
 ::X|EN|rad.driververifier.killkey.023|                    Manager\Memory Management - value names VerifyDrivers
 ::X|EN|rad.driververifier.killkey.024|                    (REG_SZ) and VerifyDriverLevel (REG_DWORD).
-::
-:: ---- svc.stop.update.stack (preference) -----------------------------
-::P|svc.stop.update.stack|STOP|STOP|STOP|STOP|SKIP|
-::T|FR|svc.stop.update.stack.001|ARRÊT DES SERVICES DE WINDOWS UPDATE
-::T|FR|svc.stop.update.stack.002|
-::T|FR|svc.stop.update.stack.003|  Ce que c est    : Avant de toucher aux caches de Windows Update, OPTY
-::T|FR|svc.stop.update.stack.004|                    arrête cinq services : bits (transferts en arrière-
-::T|FR|svc.stop.update.stack.005|                    plan), wuauserv (Windows Update), msiserver
-::T|FR|svc.stop.update.stack.006|                    (installeur MSI), cryptsvc (services de chiffrement)
-::T|FR|svc.stop.update.stack.007|                    et appidsvc (identité d'application).
-::T|FR|svc.stop.update.stack.008|
-::T|FR|svc.stop.update.stack.009|  Effet reel      : net stop agit uniquement sur l'état en cours
-::T|FR|svc.stop.update.stack.010|                    d'exécution. Les types de démarrage ne sont jamais
-::T|FR|svc.stop.update.stack.011|                    modifiés, donc rien n'est désactivé durablement. Les
-::T|FR|svc.stop.update.stack.012|                    fichiers sous SoftwareDistribution deviennent
-::T|FR|svc.stop.update.stack.013|                    supprimables parce que plus rien ne les tient ouverts.
-::T|FR|svc.stop.update.stack.014|
-::T|FR|svc.stop.update.stack.015|  Gain            : Le nettoyage du cache de mise à jour qui suit réussit
-::T|FR|svc.stop.update.stack.016|                    vraiment, au lieu de se heurter à des violations de
-::T|FR|svc.stop.update.stack.017|                    partage. En soi, cette étape ne libère rien.
-::T|FR|svc.stop.update.stack.018|
-::T|FR|svc.stop.update.stack.019|  Cout            : Entre cette étape et la fin de l'exécution, Windows
-::T|FR|svc.stop.update.stack.020|                    Update, les installations MSI et certaines
-::T|FR|svc.stop.update.stack.021|                    vérifications de signature ne fonctionnent pas. Deux
-::T|FR|svc.stop.update.stack.022|                    des cinq services sont des composants de sécurité.
-::T|FR|svc.stop.update.stack.023|                    CryptSvc arrêté, la validation des chaînes de
-::T|FR|svc.stop.update.stack.024|                    certificats et la mise à jour des signatures de
-::T|FR|svc.stop.update.stack.025|                    Defender sont dégradées ; AppIDSvc arrêté, AppLocker
-::T|FR|svc.stop.update.stack.026|                    et Smart App Control cessent d'appliquer leurs règles,
-::T|FR|svc.stop.update.stack.027|                    donc du code normalement filtré ne l'est plus. En mode
-::T|FR|svc.stop.update.stack.028|                    Auto complet, cette fenêtre dure toute l'exécution -
-::T|FR|svc.stop.update.stack.029|                    éventuellement le temps d'une réparation DISM - alors
-::T|FR|svc.stop.update.stack.030|                    n'installez et ne lancez rien d'inconnu pendant ce
-::T|FR|svc.stop.update.stack.031|                    temps. OPTY relance les cinq à :endready, et un
-::T|FR|svc.stop.update.stack.032|                    redémarrage referme aussi la fenêtre.
-::T|FR|svc.stop.update.stack.033|
-::T|FR|svc.stop.update.stack.034|  Defaut Windows  : Sans objet : c'est un état d'exécution, pas une
-::T|FR|svc.stop.update.stack.035|                    configuration. Ces services tournent ou démarrent à la
-::T|FR|svc.stop.update.stack.036|                    demande selon les besoins, et cette étape ne change
-::T|FR|svc.stop.update.stack.037|                    pas leur type de démarrage.
-::T|FR|svc.stop.update.stack.038|
-::T|FR|svc.stop.update.stack.039|  Valeurs possibles :
-::T|FR|svc.stop.update.stack.040|    STOP                 : Exécute net stop sur les cinq services. bits
-::T|FR|svc.stop.update.stack.041|                           arrête les transferts en arrière-plan, wuauserv
-::T|FR|svc.stop.update.stack.042|                           arrête l'agent Windows Update, msiserver arrête
-::T|FR|svc.stop.update.stack.043|                           le moteur d'installation MSI, cryptsvc arrête
-::T|FR|svc.stop.update.stack.044|                           la validation des certificats et des
-::T|FR|svc.stop.update.stack.045|                           catalogues, appidsvc arrête le service Identité
-::T|FR|svc.stop.update.stack.046|                           d'application dont dépendent AppLocker et Smart
-::T|FR|svc.stop.update.stack.047|                           App Control. Rien n'est écrit dans le registre,
-::T|FR|svc.stop.update.stack.048|                           donc tous les types de démarrage restent
-::T|FR|svc.stop.update.stack.049|                           intacts. L'objectif : les fichiers de
-::T|FR|svc.stop.update.stack.050|                           C:\Windows\SoftwareDistribution cessent d'être
-::T|FR|svc.stop.update.stack.051|                           ouverts, ce qui permet au nettoyage du cache de
-::T|FR|svc.stop.update.stack.052|                           les supprimer au lieu de se heurter à une
-::T|FR|svc.stop.update.stack.053|                           violation de partage.
-::T|FR|svc.stop.update.stack.054|    SKIP                 : Laisse les cinq services tourner. Le nettoyage
-::T|FR|svc.stop.update.stack.055|                           du cache de mise à jour qui suit échouera alors
-::T|FR|svc.stop.update.stack.056|                           sur les fichiers encore verrouillés, ne
-::T|FR|svc.stop.update.stack.057|                           supprimera qu'une partie de ce qu'il visait, et
-::T|FR|svc.stop.update.stack.058|                           signalera quand même une réussite parce que del
-::T|FR|svc.stop.update.stack.059|                           n'échoue pas bruyamment. Rien n'est abîmé : le
-::T|FR|svc.stop.update.stack.060|                           nettoyage est simplement peu efficace.
-::X|FR|svc.stop.update.stack.001|  Pourquoi ces profils : Quatre profils sont d'accord parce que ce n'est
-::X|FR|svc.stop.update.stack.002|                         pas un réglage d'usage, c'est le prérequis de
-::X|FR|svc.stop.update.stack.003|                         l'étape suivante : si vous lancez le nettoyage du
-::X|FR|svc.stop.update.stack.004|                         cache de mise à jour, vous arrêtez les services,
-::X|FR|svc.stop.update.stack.005|                         quelle que soit la machine. WINDOWS est la seule
-::X|FR|svc.stop.update.stack.006|                         colonne différente, et uniquement parce que
-::X|FR|svc.stop.update.stack.007|                         l'état d'origine d'une machine est que ces
-::X|FR|svc.stop.update.stack.008|                         services sont libres de tourner : le profil par
-::X|FR|svc.stop.update.stack.009|                         défaut n'arrête rien.
-::X|FR|svc.stop.update.stack.010|
-::X|FR|svc.stop.update.stack.011|  Problemes connus : Les cinq arrêts ont lieu à :startready mais les
-::X|FR|svc.stop.update.stack.012|                     redémarrages correspondants seulement à :endready.
-::X|FR|svc.stop.update.stack.013|                     Tout ce qui se passe entre les deux tourne sans
-::X|FR|svc.stop.update.stack.014|                     CryptSvc ni AppIDSvc, et sur un parcours DISM ou
-::X|FR|svc.stop.update.stack.015|                     CHKDSK, cela fait longtemps.
-::X|FR|svc.stop.update.stack.016|
-::X|FR|svc.stop.update.stack.017|  Non verifie (en)  : Leaving cryptsvc and appidsvc stopped for the rest
-::X|FR|svc.stop.update.stack.018|                      of the run is a side effect of the ordering, not a
-::X|FR|svc.stop.update.stack.019|                      decision anyone made. Whether it produces a visible
-::X|FR|svc.stop.update.stack.020|                      failure depends entirely on what else runs inside
-::X|FR|svc.stop.update.stack.021|                      that window.
-::X|FR|svc.stop.update.stack.022|
-::X|FR|svc.stop.update.stack.023|  Cible           : OPTY.bat :startready, lines 535-544 - net stop bits /
-::X|FR|svc.stop.update.stack.024|                    net stop wuauserv / net stop msiserver / net stop
-::X|FR|svc.stop.update.stack.025|                    cryptsvc / net stop appidsvc. Running state only; no
-::X|FR|svc.stop.update.stack.026|                    Start value under
-::X|FR|svc.stop.update.stack.027|                    HKLM\SYSTEM\CurrentControlSet\Services is touched.
-::T|EN|svc.stop.update.stack.001|STOP THE WINDOWS UPDATE SERVICE STACK
-::T|EN|svc.stop.update.stack.002|
-::T|EN|svc.stop.update.stack.003|  What it is      : Before touching the Windows Update caches, OPTY stops
-::T|EN|svc.stop.update.stack.004|                    five services: bits (background transfers), wuauserv
-::T|EN|svc.stop.update.stack.005|                    (Windows Update), msiserver (MSI installer), cryptsvc
-::T|EN|svc.stop.update.stack.006|                    (cryptographic services) and appidsvc (application
-::T|EN|svc.stop.update.stack.007|                    identity).
-::T|EN|svc.stop.update.stack.008|
-::T|EN|svc.stop.update.stack.009|  Actual effect   : net stop affects the running state only. Startup types
-::T|EN|svc.stop.update.stack.010|                    are never changed, so nothing is permanently disabled.
-::T|EN|svc.stop.update.stack.011|                    Files under SoftwareDistribution become deletable
-::T|EN|svc.stop.update.stack.012|                    because nothing holds them open any more.
-::T|EN|svc.stop.update.stack.013|
-::T|EN|svc.stop.update.stack.014|  Gain            : The update-cache cleanup that follows actually
-::T|EN|svc.stop.update.stack.015|                    succeeds instead of hitting sharing violations. On its
-::T|EN|svc.stop.update.stack.016|                    own, this step frees nothing.
-::T|EN|svc.stop.update.stack.017|
-::T|EN|svc.stop.update.stack.018|  Cost            : Between this step and the end of the run, Windows
-::T|EN|svc.stop.update.stack.019|                    Update, MSI installs and some signature verification
-::T|EN|svc.stop.update.stack.020|                    will not work. Two of the five are security
-::T|EN|svc.stop.update.stack.021|                    components. With CryptSvc stopped, certificate chain
-::T|EN|svc.stop.update.stack.022|                    validation and Defender signature updates are
-::T|EN|svc.stop.update.stack.023|                    impaired; with AppIDSvc stopped, AppLocker and Smart
-::T|EN|svc.stop.update.stack.024|                    App Control stop enforcing their rules, so code they
-::T|EN|svc.stop.update.stack.025|                    would normally gate is no longer gated. In Auto full
-::T|EN|svc.stop.update.stack.026|                    that window lasts for the whole run - potentially the
-::T|EN|svc.stop.update.stack.027|                    length of a DISM repair - so do not install or launch
-::T|EN|svc.stop.update.stack.028|                    untrusted software during it. OPTY restarts all five
-::T|EN|svc.stop.update.stack.029|                    at :endready, and a reboot closes the window too.
-::T|EN|svc.stop.update.stack.030|
-::T|EN|svc.stop.update.stack.031|  Windows default : Not applicable - this is runtime state, not
-::T|EN|svc.stop.update.stack.032|                    configuration. These services normally run or demand-
-::T|EN|svc.stop.update.stack.033|                    start as needed, and their start types are unchanged
-::T|EN|svc.stop.update.stack.034|                    by this step.
-::T|EN|svc.stop.update.stack.035|
-::T|EN|svc.stop.update.stack.036|  Possible values:
-::T|EN|svc.stop.update.stack.037|    STOP                 : Issues net stop against the five services. bits
-::T|EN|svc.stop.update.stack.038|                           stops background transfers, wuauserv stops the
-::T|EN|svc.stop.update.stack.039|                           Windows Update agent, msiserver stops the MSI
-::T|EN|svc.stop.update.stack.040|                           installer engine, cryptsvc stops certificate
-::T|EN|svc.stop.update.stack.041|                           and catalog validation, appidsvc stops the
-::T|EN|svc.stop.update.stack.042|                           Application Identity service that AppLocker and
-::T|EN|svc.stop.update.stack.043|                           Smart App Control depend on. Nothing is written
-::T|EN|svc.stop.update.stack.044|                           to the registry, so every start type survives
-::T|EN|svc.stop.update.stack.045|                           untouched. The point is that the files under
-::T|EN|svc.stop.update.stack.046|                           C:\Windows\SoftwareDistribution stop being held
-::T|EN|svc.stop.update.stack.047|                           open, which is what lets the cache cleanup
-::T|EN|svc.stop.update.stack.048|                           delete them instead of hitting a sharing
-::T|EN|svc.stop.update.stack.049|                           violation.
-::T|EN|svc.stop.update.stack.050|    SKIP                 : Leaves the five services running. The update-
-::T|EN|svc.stop.update.stack.051|                           cache cleanup that follows will then fail on
-::T|EN|svc.stop.update.stack.052|                           the files that are still locked, delete a
-::T|EN|svc.stop.update.stack.053|                           fraction of what it aimed at, and report
-::T|EN|svc.stop.update.stack.054|                           success anyway because del does not fail
-::T|EN|svc.stop.update.stack.055|                           loudly. Nothing is damaged; the cleanup is just
-::T|EN|svc.stop.update.stack.056|                           mostly ineffective.
-::X|EN|svc.stop.update.stack.001|  Why these profiles : Four profiles agree because this is not a use-case
-::X|EN|svc.stop.update.stack.002|                       setting, it is the prerequisite of the step that
-::X|EN|svc.stop.update.stack.003|                       comes next: if you are running the update-cache
-::X|EN|svc.stop.update.stack.004|                       cleanup, you stop the services, whatever the
-::X|EN|svc.stop.update.stack.005|                       machine is for. WINDOWS is the only column that
-::X|EN|svc.stop.update.stack.006|                       differs, and only because the shipped state of a
-::X|EN|svc.stop.update.stack.007|                       machine is that these services are free to run -
-::X|EN|svc.stop.update.stack.008|                       the default profile does not stop anything.
-::X|EN|svc.stop.update.stack.009|
-::X|EN|svc.stop.update.stack.010|  Known problems  : The five stops happen at :startready but the matching
-::X|EN|svc.stop.update.stack.011|                    restarts only at :endready. Everything between them
-::X|EN|svc.stop.update.stack.012|                    runs with CryptSvc and AppIDSvc down, and on a long
-::X|EN|svc.stop.update.stack.013|                    DISM or CHKDSK path that is a long time.
-::X|EN|svc.stop.update.stack.014|
-::X|EN|svc.stop.update.stack.015|  Unverified      : Leaving cryptsvc and appidsvc stopped for the rest of
-::X|EN|svc.stop.update.stack.016|                    the run is a side effect of the ordering, not a
-::X|EN|svc.stop.update.stack.017|                    decision anyone made. Whether it produces a visible
-::X|EN|svc.stop.update.stack.018|                    failure depends entirely on what else runs inside that
-::X|EN|svc.stop.update.stack.019|                    window.
-::X|EN|svc.stop.update.stack.020|
-::X|EN|svc.stop.update.stack.021|  Target          : OPTY.bat :startready, lines 535-544 - net stop bits /
-::X|EN|svc.stop.update.stack.022|                    net stop wuauserv / net stop msiserver / net stop
-::X|EN|svc.stop.update.stack.023|                    cryptsvc / net stop appidsvc. Running state only; no
-::X|EN|svc.stop.update.stack.024|                    Start value under
-::X|EN|svc.stop.update.stack.025|                    HKLM\SYSTEM\CurrentControlSet\Services is touched.
 ::
 :: ---- endready.restart.services (repair) -------------------------
 ::P|endready.restart.services|START|START|START|START|START|
