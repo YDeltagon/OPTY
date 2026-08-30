@@ -743,6 +743,7 @@ if %CMW% GEQ 600 (
     taskkill /f /im cleanmgr.exe >nul 2>&1
     call :L "%cWarn%" "cleanmgr exceeded 10 min - stopped. A disconnected network drive is the usual cause."
     echo %date% %time% : cleanmgr /sagerun:64 TIMED OUT after 600s   >> %logs%
+    if /i %autoclean% == 0 goto mcompact
     goto clean_wsl
 )
 goto clean_wait
@@ -750,9 +751,12 @@ goto clean_wait
 call :L "%cOK%" "Disk Cleanup finished (profile 0064)"
 echo %date% %time% : cleanmgr /sagerun:64 completed in %CMW%s        >> %logs%
 :: Manual mode asks about the disk compaction separately (cl.vhdx.compact);
-:: the auto modes fall straight through as they always did. The 10-minute
-:: timeout path above still lands in :clean_wsl directly.
+:: only autoclean==0 diverts to :mcompact to ask - Auto lite never reaches
+:: this point at all (its own chain ends at :delete), so the only other
+:: value here is 2. Made explicit (rather than left as a fall-through) so
+:: gate 8 can verify clean.vhdx.compact's own Auto-full membership.
 if /i %autoclean% == 0 goto mcompact
+if /i %autoclean% == 2 goto clean_wsl
 
 
 :clean_wsl
@@ -847,7 +851,7 @@ goto mdelete
 echo.                                                           >> %logs%
 echo ====================== :MCOMPACT ======================     >> %logs%
 echo %date% %time% : Entered :mcompact label                          >> %logs%
-call :step "cl.vhdx.compact" "clean.compact" "WSL / DOCKER DISKS"
+call :step "cl.vhdx.compact" "clean.vhdxcompact" "WSL / DOCKER DISKS"
 if "%STEPYES%"=="REDRAW" goto mcompact
 if defined STEPYES goto clean_wsl
 goto mdelete
@@ -1159,7 +1163,6 @@ for /d %%U in ("%SystemDrive%\Users\*") do call :userclean "%%~fU"
 del /S /F /Q "%LOCALAPPDATA%\Microsoft\EdgeWebView\Cache\*"        >nul 2>&1
 del /S /F /Q "%LOCALAPPDATA%\Microsoft\EdgeWebView\User Data\Default\Cache\*"      >nul 2>&1
 del /S /F /Q "%LOCALAPPDATA%\Microsoft\EdgeWebView\User Data\Default\Code Cache\*" >nul 2>&1
-:delete_skip_apps
 
 :: --- Windows.old (removes rollback): Auto full, or asked in manual ---
 :dl_winold
@@ -1323,7 +1326,6 @@ net start FontCache >nul 2>&1
 :: OPTY's own work. It also contradicts SystemRestorePointCreationFrequency=0
 :: set elsewhere in this file, and Windows already expires shadow copies on its
 :: own. Restore points are a safety net; a maintenance tool does not delete them.
-:delete_skip_vss
 
 :dl_end
 echo %date% %time% : :delete done                                        >> %logs%
@@ -37289,8 +37291,10 @@ goto :eof
 ::S|clean.delete     |LF|delete|
 ::S|clean.winold    |_F|dl_winold_go|
 ::S|clean.compact    |_F|clean|
+::S|clean.vhdxcompact |_F|clean_wsl|
 ::S|clean.defrag     |_F|defrag|
 ::S|clean.chkdsk     |__|chkdsk|
+::S|clean.optyprune  |__|coc_ask|
 ::
 :: Steps the auto path enters that are NOT user-facing cleanup steps. Gate 8
 :: ignores these rather than demanding a row for each - they are control flow,
