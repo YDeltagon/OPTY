@@ -4256,21 +4256,33 @@ cls
 call :rule
 call :card "%~1"
 echo(
+:: The reference table (what each profile would answer) and the actual
+:: keys to press used to be the SAME bright color, so nothing told a user
+:: which one was the real choice - confirmed confusing directly by a user
+:: who mistook this whole screen for a profile-selection menu. The table
+:: is now dim/info-colored (read-only reference), the real keys below are
+:: %cOK% (bright green, the "go" color everywhere else in this script),
+:: and a label makes clear the table is not itself a menu.
+if /i "%UILANG%"=="FR" (
+    echo(     %cInfo%Ce que repondrait chaque profil, pour information :%cR%
+) else (
+    echo(     %cInfo%What each profile would answer, for reference :%cR%
+)
 call :profval "%~1" 1
-echo(     %cVal%1%cR%  %cInfo%GAMING%cR%       %PROFVAL%
+echo(     %cInfo%  1  GAMING       %PROFVAL%%cR%
 call :profval "%~1" 2
-echo(     %cVal%2%cR%  %cInfo%SERVER%cR%       %PROFVAL%
+echo(     %cInfo%  2  SERVER       %PROFVAL%%cR%
 call :profval "%~1" 3
-echo(     %cVal%3%cR%  %cInfo%OFFICE%cR%       %PROFVAL%
+echo(     %cInfo%  3  OFFICE       %PROFVAL%%cR%
 call :profval "%~1" 4
-echo(     %cVal%4%cR%  %cInfo%LAPTOP%cR%       %PROFVAL%
+echo(     %cInfo%  4  LAPTOP       %PROFVAL%%cR%
 call :profval "%~1" 5
-echo(     %cVal%5%cR%  %cInfo%WINDOWS%cR%      %PROFVAL%
+echo(     %cInfo%  5  WINDOWS      %PROFVAL%%cR%
 echo(
 if /i "%UILANG%"=="FR" (
-    echo(     %cVal%?%cR%  en savoir plus     %cVal%s%cR%  passer     %cVal%Entree%cR%  = %~2 recommande
+    echo(     %cOK%?%cR%  en savoir plus     %cOK%s%cR%  passer     %cOK%Entree%cR%  = %~2 recommande
 ) else (
-    echo(     %cVal%?%cR%  explain more       %cVal%s%cR%  skip       %cVal%Enter%cR%  = %~2 recommended
+    echo(     %cOK%?%cR%  explain more       %cOK%s%cR%  skip       %cOK%Enter%cR%  = %~2 recommended
 )
 call :rule
 set "choice="
