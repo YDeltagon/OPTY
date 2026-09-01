@@ -481,35 +481,18 @@ if /i "%AutoOpti_Shutdown%"=="1" (
     goto wupdate
 )
 
-color F5
 cls
-echo.                                                  
-echo  WELCOME to OPTY by @YannD-Deltagon                         
-echo    Choose an option for Optimization cycle:                    
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo   1. Manual                                                    
-echo   2. Auto (lite)                                                
-echo   3. Auto (Full)                                                
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo  If you want reboot/stop after autoopti, type "r" (reboot) or "s" (shutdown) after the number 
-echo  If you don't want reboot/stop, type nothing after the number - 2-3     
-echo  2r - Auto (Lite) + reboot                                       
-echo  3s - Auto (Full) + Stop                                          
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo.                                                  
-echo   0. Menu                                                         
-echo.                                                  
-echo.                                                  
+call :banner "CLEAN"
+echo(
+echo(     %cVal%1.%cR%  Manual         %cInfo%asks and explains every step%cR%
+echo(     %cVal%2.%cR%  Auto (lite)    %cInfo%Windows Update, then file cleanup%cR%
+echo(     %cVal%3.%cR%  Auto (Full)    %cInfo%everything - DISM, SFC, WSL/Docker, defrag%cR%
+echo(
+echo(   %cInfo%Add r or s after 2/3 to reboot or shut down when done - e.g. 2r, 3s.%cR%
+echo(
+echo(     %cVal%0.%cR%  Menu
+echo(
+call :rule
 set "choice="
 set /p choice= Enter action:
 echo %date% %time% : Opti-mopti "%choice%"                            >> %logs%
@@ -904,8 +887,13 @@ echo.                                                           >> %logs%
 echo %date% %time% : Entered :mdelete label                          >> %logs%
 cls
 echo Do you want to delete temporary files - DEL?
+echo(
+echo(     %cVal%1.%cR%  Yes
+echo(     %cVal%2.%cR%  No
+echo(
+call :rule
 set "choice="
-set /p choice= 1 (Yes) - 2 (No)
+set /p choice= Enter action:
 echo %date% %time% : Opti-mdelete "%choice%"                            >> %logs%
 if /i "%choice%"=="1" goto delete
 if /i "%choice%"=="2" goto mdefrag
@@ -1499,8 +1487,14 @@ echo ====================== :MSHUTDOWNREBOOTFIX ================   >> %logs%
 echo.                                                           >> %logs%
 echo %date% %time% : Entered :mshutdownrebootfix label               >> %logs%
 echo Do you want to restart/stop the computer?
+echo(
+echo(     %cVal%R.%cR%  Reboot
+echo(     %cVal%S.%cR%  Stop
+echo(     %cVal%0.%cR%  No
+echo(
+call :rule
 set "choice="
-set /p choice= R (Reboot) - S (Stop) - 0 (No)
+set /p choice= Enter action:
 echo %date% %time% : Opti-mshutdownrebootfix "%choice%"                   >> %logs%
 if /i "%choice%"=="R" goto reboot
 if /i "%choice%"=="S" goto shutdown
@@ -2215,8 +2209,12 @@ echo(
 echo(   %cInfo%The JSON lists each driver's accepted values / limits - it is what a%cR%
 echo(   %cInfo%future universal NIC tuning module will read instead of hardcoding.%cR%
 echo(
+echo(     %cVal%1.%cR%  Open the report now
+echo(     %cVal%0.%cR%  No
+echo(
+call :rule
 set "choice="
-set /p choice= Open the report now? 1 (Yes) - 0 (No):
+set /p choice= Enter action:
 if "%choice%"=="1" start "" notepad "%NICTXT%"
 goto mreports
 
@@ -3108,7 +3106,7 @@ del /f /q "%TEMP%\opty_nic_list.txt" >nul 2>&1
 goto setup_next
 :se_pick
 echo(
-echo(   0. Back
+echo(   %cVal%0.%cR% Back
 echo(
 set "choice="
 set /p choice= Adapter number to tune:
@@ -3257,7 +3255,7 @@ for /f "usebackq tokens=1,*" %%A in ("%TEMP%\opty_nic_list.txt") do (
     call :nicecho "%%A" "%%B"
 )
 echo(
-echo(   0. Back
+echo(   %cVal%0.%cR% Back
 echo(
 set "choice="
 set /p choice= Adapter number to restore:
@@ -3306,8 +3304,12 @@ netsh int tcp set heuristics default >nul
 netsh int tcp set global rss=default >nul
 :nr_restart
 echo(
+echo(     %cVal%1.%cR%  Restart the adapter now
+echo(     %cVal%0.%cR%  No, on next reboot
+echo(
+call :rule
 set "choice="
-set /p choice= Restart the adapter now? 1 (Yes) - 0 (No, on next reboot):
+set /p choice= Enter action:
 if "%choice%"=="1" call :nicrestart "%NICKEY%"
 call :L "%cOK%" "Adapter restored to the driver's own defaults."
 del /f /q "%TEMP%\opty_nic_list.txt" >nul 2>&1
@@ -4029,9 +4031,9 @@ echo(
 call :stepmodes "%~2"
 echo(
 if /i "%UILANG%"=="FR" (
-    echo(     %cVal%1%cR%  Executer cette etape      %cVal%2%cR%  Passer      %cVal%?%cR%  En savoir plus
+    echo(     %cOK%1%cR%  Executer cette etape      %cOK%2%cR%  Passer      %cOK%?%cR%  En savoir plus
 ) else (
-    echo(     %cVal%1%cR%  Run this step             %cVal%2%cR%  Skip        %cVal%?%cR%  Explain more
+    echo(     %cOK%1%cR%  Run this step             %cOK%2%cR%  Skip        %cOK%?%cR%  Explain more
 )
 call :rule
 set "choice="
@@ -19830,10 +19832,8 @@ goto :eof
 ::X|EN|net.nic.restart.profile.037|                       column is SKIP because Windows never restarts an
 ::X|EN|net.nic.restart.profile.038|                       adapter on its own.
 ::X|EN|net.nic.restart.profile.039|
-::X|EN|net.nic.restart.profile.040|  Target          : the prompt "Restart the adapter now? 1 (Yes) - 0 (No,
-::X|EN|net.nic.restart.profile.041|                    on next reboot)" at the end of :net_apply, which calls
-::X|EN|net.nic.restart.profile.042|                    :nicrestart -> pnputil /restart-device "%NPNP%"
-::X|EN|net.nic.restart.profile.043|                    (OPTY.bat ~2930-2935, helper :nicrestart ~3500-3510)
+::X|EN|net.nic.restart.profile.040|  Target          : the restart prompt at the end of :net_restore, which
+::X|EN|net.nic.restart.profile.041|                    calls :nicrestart -> pnputil /restart-device "%NPNP%"
 ::X|FR|net.nic.restart.profile.001|  Ce que c est    : pnputil /restart-device sur la carte, pour que NDIS
 ::X|FR|net.nic.restart.profile.002|                    relise tous les mots-cles qui viennent d etre ecrits
 ::X|FR|net.nic.restart.profile.003|                    au lieu d attendre le prochain demarrage.
@@ -19875,10 +19875,8 @@ goto :eof
 ::X|FR|net.nic.restart.profile.039|                         colonne Windows est a SKIP parce que Windows ne
 ::X|FR|net.nic.restart.profile.040|                         redemarre jamais une carte de lui-meme.
 ::X|FR|net.nic.restart.profile.041|
-::X|FR|net.nic.restart.profile.042|  Cible           : the prompt "Restart the adapter now? 1 (Yes) - 0 (No,
-::X|FR|net.nic.restart.profile.043|                    on next reboot)" at the end of :net_apply, which calls
-::X|FR|net.nic.restart.profile.044|                    :nicrestart -> pnputil /restart-device "%NPNP%"
-::X|FR|net.nic.restart.profile.045|                    (OPTY.bat ~2930-2935, helper :nicrestart ~3500-3510)
+::X|FR|net.nic.restart.profile.042|  Cible           : le prompt de redemarrage a la fin de :net_restore, qui
+::X|FR|net.nic.restart.profile.043|                    appelle :nicrestart -> pnputil /restart-device "%NPNP%"
 ::
 :: ---- net.nic.restore.profile (repair) ---------------------------
 ::P|net.nic.restore.profile|SKIP|SKIP|SKIP|SKIP|APPLY|
