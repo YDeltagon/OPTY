@@ -169,44 +169,84 @@ echo %date% %time% : Entered :shortcut label                      >> %logs%
 :: And the original is only removed once the copy is verified present - the old
 :: order deleted the source even when xcopy had failed, which is how a checkout
 :: of this repo could simply lose OPTY.bat.
-if /i not "%~dp0" == "%OPTY_HOME%\" (
-    echo %date% %time% : Relocating to %OPTY_HOME%                  >> %logs%
-    if not exist "%OPTY_HOME%" md "%OPTY_HOME%" >nul 2>&1
-    :: Lock the folder down before anything is copied into it. A directory
-    :: created at the root of C: inherits Modify for Authenticated Users, and
-    :: this one holds a script that relaunches itself ELEVATED. Measured on the
-    :: reference machine before this line existed:
-    ::     C:\OPTY_by-YannD\OPTY.bat
-    ::         AUTORITE NT\Utilisateurs authentifies : Modify, Synchronize
-    :: Any standard account could rewrite the script and have it run as
-    :: administrator the next time somebody launched OPTY. That is a local
-    :: privilege-escalation path, created by the tool itself.
-    :: SIDs, not names: this machine reports BUILTIN\Administrateurs and
-    :: AUTORITE NT\Utilisateurs authentifies, so icacls with English names
-    :: fails outright - the same trap as parsing translated command output.
-    ::   S-1-5-32-544 Administrators   S-1-5-18 SYSTEM   S-1-5-32-545 Users
-    icacls "%OPTY_HOME%" /inheritance:r >nul 2>&1
-    icacls "%OPTY_HOME%" /grant "*S-1-5-32-544:(OI)(CI)F" >nul 2>&1
-    icacls "%OPTY_HOME%" /grant "*S-1-5-18:(OI)(CI)F"     >nul 2>&1
-    icacls "%OPTY_HOME%" /grant "*S-1-5-32-545:(OI)(CI)RX" >nul 2>&1
-    echo %date% %time% : Hardened ACL on %OPTY_HOME% (admins+SYSTEM full, users read-only) >> %logs%
-    xcopy /y /q "%~dp0OPTY.bat" "%OPTY_HOME%\" >nul
-    if not exist "%OPTY_HOME%\OPTY.bat" (
-        echo %date% %time% : Relocation FAILED - staying put        >> %logs%
-        color 0C
-        echo.
-        echo  Could not copy OPTY.bat to %OPTY_HOME% - running from here instead.
-        echo.
-        timeout /t 5
-        goto shortcut_done
-    )
-    echo %date% %time% : Starting script from new location          >> %logs%
-    start "" "%OPTY_HOME%\OPTY.bat"
-    echo %date% %time% : Removing the original copy                 >> %logs%
-    del "%~dp0OPTY.bat"
-    exit
-)
+:: Early-exit instead of wrapping the whole relocation in `if ( ... )`: a
+:: `goto` that loops BACKWARD to a label still inside an open parenthesised
+:: block is a known-unreliable CMD pattern (the whole block is tokenised
+:: before anything runs), and the wait-loop below needs exactly that kind of
+:: loop. So this only ever wraps a single non-looping `if`, never a block.
+if /i "%~dp0" == "%OPTY_HOME%\" goto shortcut_done
+
+echo %date% %time% : Relocating to %OPTY_HOME%                  >> %logs%
+if not exist "%OPTY_HOME%" md "%OPTY_HOME%" >nul 2>&1
+:: Lock the folder down before anything is copied into it. A directory
+:: created at the root of C: inherits Modify for Authenticated Users, and
+:: this one holds a script that relaunches itself ELEVATED. Measured on the
+:: reference machine before this line existed:
+::     C:\OPTY_by-YannD\OPTY.bat
+::         AUTORITE NT\Utilisateurs authentifies : Modify, Synchronize
+:: Any standard account could rewrite the script and have it run as
+:: administrator the next time somebody launched OPTY. That is a local
+:: privilege-escalation path, created by the tool itself.
+:: SIDs, not names: this machine reports BUILTIN\Administrateurs and
+:: AUTORITE NT\Utilisateurs authentifies, so icacls with English names
+:: fails outright - the same trap as parsing translated command output.
+::   S-1-5-32-544 Administrators   S-1-5-18 SYSTEM   S-1-5-32-545 Users
+icacls "%OPTY_HOME%" /inheritance:r >nul 2>&1
+icacls "%OPTY_HOME%" /grant "*S-1-5-32-544:(OI)(CI)F" >nul 2>&1
+icacls "%OPTY_HOME%" /grant "*S-1-5-18:(OI)(CI)F"     >nul 2>&1
+icacls "%OPTY_HOME%" /grant "*S-1-5-32-545:(OI)(CI)RX" >nul 2>&1
+echo %date% %time% : Hardened ACL on %OPTY_HOME% (admins+SYSTEM full, users read-only) >> %logs%
+xcopy /y /q "%~dp0OPTY.bat" "%OPTY_HOME%\" >nul
+if not exist "%OPTY_HOME%\OPTY.bat" goto shortcut_copyfailed
+
+echo %date% %time% : Starting script from new location          >> %logs%
+if exist "%OPTY_HOME%\OPTY_started.tmp" del "%OPTY_HOME%\OPTY_started.tmp" >nul 2>&1
+start "" "%OPTY_HOME%\OPTY.bat"
+:: The exist-check above only proves xcopy worked - it does NOT prove the
+:: relaunched copy is actually alive. `start` returns immediately without
+:: waiting, so anything that removes or blocks the new file in the moment
+:: after (antivirus quarantining a script that hardens its own folder ACL
+:: and immediately relaunches itself elevated is the measured cause here)
+:: leaves the user with the source deleted AND no working copy anywhere.
+:: So the original is kept until the relocated copy proves it is running,
+:: by writing OPTY_started.tmp once it reaches :shortcut_done from
+:: %OPTY_HOME% itself - see below.
+set "OPTYWAIT=0"
+:shortcut_wait
+if exist "%OPTY_HOME%\OPTY_started.tmp" goto shortcut_confirmed
+set /a OPTYWAIT+=1
+if %OPTYWAIT% GEQ 20 goto shortcut_unconfirmed
+timeout /t 1 /nobreak >nul
+goto shortcut_wait
+
+:shortcut_confirmed
+del "%OPTY_HOME%\OPTY_started.tmp" >nul 2>&1
+echo %date% %time% : Relocated copy confirmed running - removing the original >> %logs%
+del "%~dp0OPTY.bat"
+exit
+
+:shortcut_unconfirmed
+echo %date% %time% : Relocated copy never confirmed after 20s - KEEPING the original >> %logs%
+color 0C
+echo.
+echo  The copy at %OPTY_HOME% did not confirm starting within 20 seconds.
+echo  Keeping the original here instead of deleting it - check whether
+echo  your antivirus removed %OPTY_HOME%\OPTY.bat.
+echo.
+timeout /t 5
+goto shortcut_done
+
+:shortcut_copyfailed
+echo %date% %time% : Relocation FAILED - staying put        >> %logs%
+color 0C
+echo.
+echo  Could not copy OPTY.bat to %OPTY_HOME% - running from here instead.
+echo.
+timeout /t 5
+goto shortcut_done
+
 :shortcut_done
+if /i "%~dp0" == "%OPTY_HOME%\" echo. 2>nul > "%OPTY_HOME%\OPTY_started.tmp"
 
 call :sysinfo
 
